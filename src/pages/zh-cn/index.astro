@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import About from '../../components/About.astro';
+import Services from '../../components/Services.astro';
+import Contact from '../../components/Contact.astro';
+
+const lang = 'zh-cn';
+const title = 'Jacques Belmont - 数字营销专家和人工智能专家';
+const description = '专业数字营销顾问，专注于SEO、内容策略和AI优化。位于巴西若昂佩索阿。';
+---
+
+<BaseLayout 
+  title={title}
+  description={description}
+>
+  <Hero lang={lang} />
+  <About lang={lang} />
+  <Services lang={lang} />
+  <Contact lang={lang} />
+</BaseLayout>

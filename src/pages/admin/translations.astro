@@ -1,0 +1,307 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Traduções">
+  <div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Gerenciar Traduções</h1>
+      <p class="text-gray-600">Edite as traduções para todos os idiomas suportados</p>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Selecionar Idioma</h2>
+      <div class="flex flex-wrap gap-4">
+        <button class="lang-btn active bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" data-lang="en">
+          🇺🇸 English
+        </button>
+        <button class="lang-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300" data-lang="es">
+          🇪🇸 Español
+        </button>
+        <button class="lang-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300" data-lang="zh-cn">
+          🇨🇳 中文
+        </button>
+        <button class="lang-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300" data-lang="ar">
+          🇸🇦 العربية
+        </button>
+        <button class="lang-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300" data-lang="pt">
+          🇧🇷 Português
+        </button>
+      </div>
+    </div>
+
+    <!-- Translation Editor -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Editor de Traduções - <span id="current-lang">English</span></h2>
+        <div class="flex space-x-2">
+          <button id="save-translations" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">
+            Salvar Traduções
+          </button>
+          <button id="export-translations" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            Exportar JSON
+          </button>
+          <button id="import-translations" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+            Importar JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Translation Sections -->
+      <div class="space-y-8">
+        <!-- Navigation -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Navegação</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Home</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="nav.home" value="Home">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">About</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="nav.about" value="About">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Services</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="nav.services" value="Services">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Contact</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="nav.contact" value="Contact">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Seção Hero</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Greeting</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="hero.greeting" value="Hello, I'm">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="hero.title" value="Digital Marketing Expert & AI Specialist">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+              <textarea class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" rows="3" 
+                        data-key="hero.subtitle">Helping businesses grow through strategic digital marketing, SEO optimization, and cutting-edge AI solutions.</textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">CTA Button</label>
+                <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                       data-key="hero.cta" value="Get in Touch">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Learn More</label>
+                <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                       data-key="hero.learnMore" value="Learn More">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Seção Sobre</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="about.title" value="About Me">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="about.subtitle" value="Passionate about digital transformation">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <textarea class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" rows="4" 
+                        data-key="about.description">With over 10 years of experience in digital marketing, I specialize in SEO, content strategy, and AI optimization. Based in João Pessoa, Brazil, I help businesses worldwide achieve their digital goals through data-driven strategies and innovative solutions.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Services Section -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Seção Serviços</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="services.title" value="Services">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="services.subtitle" value="How I can help your business grow">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">SEO Title</label>
+                <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                       data-key="services.seo.title" value="SEO Optimization">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Content Title</label>
+                <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                       data-key="services.content.title" value="Content Strategy">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Seção Contato</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="contact.title" value="Get in Touch">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="contact.name" value="Name">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="contact.email" value="Email">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Send Button</label>
+              <input type="text" class="translation-input w-full px-3 py-2 border border-gray-300 rounded-md" 
+                     data-key="contact.send" value="Send Message">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Importar Traduções JSON</h3>
+        <textarea id="import-json" rows="10" class="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm" 
+                  placeholder="Cole o JSON das traduções aqui..."></textarea>
+        <div class="flex justify-end space-x-4 mt-4">
+          <button id="cancel-import" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+            Cancelar
+          </button>
+          <button id="confirm-import" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            Importar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentLang = 'en';
+      const translations = {
+        en: {},
+        es: {},
+        'zh-cn': {},
+        ar: {},
+        pt: {}
+      };
+
+      // Language switching
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          // Save current translations
+          saveCurrentTranslations();
+          
+          // Switch language
+          document.querySelectorAll('.lang-btn').forEach(b => {
+            b.classList.remove('active', 'bg-blue-600', 'text-white');
+            b.classList.add('bg-gray-200', 'text-gray-700');
+          });
+          
+          btn.classList.add('active', 'bg-blue-600', 'text-white');
+          btn.classList.remove('bg-gray-200', 'text-gray-700');
+          
+          currentLang = btn.dataset.lang;
+          document.getElementById('current-lang').textContent = btn.textContent.split(' ')[1];
+          
+          // Load translations for new language
+          loadTranslations();
+        });
+      });
+
+      function saveCurrentTranslations() {
+        document.querySelectorAll('.translation-input').forEach(input => {
+          const key = input.dataset.key;
+          if (key) {
+            translations[currentLang][key] = input.value;
+          }
+        });
+      }
+
+      function loadTranslations() {
+        document.querySelectorAll('.translation-input').forEach(input => {
+          const key = input.dataset.key;
+          if (key && translations[currentLang][key]) {
+            input.value = translations[currentLang][key];
+          }
+        });
+      }
+
+      // Save translations
+      document.getElementById('save-translations')?.addEventListener('click', () => {
+        saveCurrentTranslations();
+        alert('Traduções salvas com sucesso!');
+      });
+
+      // Export translations
+      document.getElementById('export-translations')?.addEventListener('click', () => {
+        saveCurrentTranslations();
+        const dataStr = JSON.stringify(translations, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'translations.json';
+        link.click();
+      });
+
+      // Import translations
+      document.getElementById('import-translations')?.addEventListener('click', () => {
+        document.getElementById('import-modal').classList.remove('hidden');
+      });
+
+      document.getElementById('cancel-import')?.addEventListener('click', () => {
+        document.getElementById('import-modal').classList.add('hidden');
+      });
+
+      document.getElementById('confirm-import')?.addEventListener('click', () => {
+        try {
+          const importedData = JSON.parse(document.getElementById('import-json').value);
+          Object.assign(translations, importedData);
+          loadTranslations();
+          document.getElementById('import-modal').classList.add('hidden');
+          alert('Traduções importadas com sucesso!');
+        } catch (error) {
+          alert('Erro ao importar JSON: ' + error.message);
+        }
+      });
+
+      // Initialize
+      loadTranslations();
+    });
+  </script>
+</AdminLayout>

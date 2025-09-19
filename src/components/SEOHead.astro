@@ -1,0 +1,124 @@
+---
+import { generateSEOTags, generateStructuredData, type SEOData } from '../lib/seo';
+import { SITE_CONFIG } from '../config/site';
+
+interface Props extends SEOData {
+  lang?: string;
+  structuredData?: any;
+}
+
+const {
+  title,
+  description,
+  keywords,
+  image,
+  url,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  section,
+  tags,
+  lang = 'en',
+  structuredData
+} = Astro.props;
+
+const seoTags = generateSEOTags({
+  title,
+  description,
+  keywords,
+  image,
+  url: url || Astro.url.href,
+  type,
+  publishedTime,
+  modifiedTime,
+  author,
+  section,
+  tags
+});
+
+const schema = structuredData || generateStructuredData(type, {
+  title: seoTags.title,
+  description: seoTags.description,
+  image: seoTags.ogImage,
+  url: seoTags.canonical,
+  publishedTime,
+  modifiedTime,
+  author: seoTags.author
+});
+---
+
+<!-- Primary Meta Tags -->
+<title>{seoTags.title}</title>
+<meta name="title" content={seoTags.title} />
+<meta name="description" content={seoTags.description} />
+<meta name="keywords" content={seoTags.keywords} />
+<meta name="author" content={seoTags.author} />
+<meta name="robots" content={seoTags.robots} />
+<link rel="canonical" href={seoTags.canonical} />
+
+<!-- Language -->
+<html lang={lang} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={seoTags.ogType} />
+<meta property="og:url" content={seoTags.ogUrl} />
+<meta property="og:title" content={seoTags.ogTitle} />
+<meta property="og:description" content={seoTags.ogDescription} />
+<meta property="og:image" content={seoTags.ogImage} />
+<meta property="og:site_name" content={seoTags.ogSiteName} />
+<meta property="og:locale" content={lang.replace('-', '_')} />
+
+<!-- Article specific Open Graph tags -->
+{type === 'article' && (
+  <>
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {author && <meta property="article:author" content={author} />}
+    {section && <meta property="article:section" content={section} />}
+    {tags && tags.map(tag => <meta property="article:tag" content={tag} />)}
+  </>
+)}
+
+<!-- Twitter -->
+<meta property="twitter:card" content={seoTags.twitterCard} />
+<meta property="twitter:url" content={seoTags.ogUrl} />
+<meta property="twitter:title" content={seoTags.twitterTitle} />
+<meta property="twitter:description" content={seoTags.twitterDescription} />
+<meta property="twitter:image" content={seoTags.twitterImage} />
+<meta property="twitter:site" content={seoTags.twitterSite} />
+<meta property="twitter:creator" content={seoTags.twitterCreator} />
+
+<!-- Favicons -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+<!-- Additional Meta Tags -->
+<meta name="theme-color" content="#3B82F6" />
+<meta name="msapplication-TileColor" content="#3B82F6" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Verification Tags -->
+{SITE_CONFIG.seo.googleSiteVerification && (
+  <meta name="google-site-verification" content={SITE_CONFIG.seo.googleSiteVerification} />
+)}
+{SITE_CONFIG.seo.bingSiteVerification && (
+  <meta name="msvalidate.01" content={SITE_CONFIG.seo.bingSiteVerification} />
+)}
+
+<!-- Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<!-- Preconnect to external domains -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://images.pexels.com" />
+
+<!-- DNS Prefetch -->
+<link rel="dns-prefetch" href="//www.google-analytics.com" />
+<link rel="dns-prefetch" href="//www.googletagmanager.com" />

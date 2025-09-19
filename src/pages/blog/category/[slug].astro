@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { prisma } from '../../../lib/database';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/blog');
+}
+
+// Fetch category and posts
+const category = await prisma.category.findUnique({
+  where: { slug },
+  include: {
+    posts: {
+      where: { published: true },
+      include: {
+        author: { select: { name: true } },
+        category: true,
+        _count: { select: { comments: true } }
+      },
+      orderBy: { publishedAt: 'desc' }
+    }
+  }
+});
+
+if (!category) {
+  return Astro.redirect('/blog');
+}
+
+const allCategories = await prisma.category.findMany({
+  include: { _count: { select: { posts: true } } }
+});
+---
+
+<BaseLayout 
+  title={`${category.name} - Blog - Jacques Belmont`}
+  description={category.description || `Articles about ${category.name} from Jacques Belmont`}
+>
+  <!-- Hero Section -->
+  <section class="py-20 bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl lg:text-5xl font-display font-bold text-gray-900 mb-6">
+        {category.name}
+      </h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        {category.description || `All articles about ${category.name}`}
+      </p>
+    </div>
+  </section>
+
+  <!-- Posts Grid -->
+  <section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {category.posts.length > 0 ? (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {category.posts.map((post) => (
+            <article class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
+              <div class="aspect-video overflow-hidden">
+                <img 
+                  src={post.image || 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                  alt={post.title}
+                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+              </div>
+              
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="px-3 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded-full">
+                    {post.category.name}
+                  </span>
+                  <span class="text-gray-500 text-sm">{post.readTime || '5 min read'}</span>
+                </div>
+                
+                <h2 class="text-xl font-display font-semibold text-gray-900 mb-3 line-clamp-2">
+                  {post.title}
+                </h2>
+                
+                <p class="text-gray-600 mb-4 line-clamp-3">
+                  {post.excerpt}
+                </p>
+                
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-500 text-sm">
+                    {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                  <a 
+                    href={`/blog/${post.slug}`}
+                    class="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center"
+                  >
+                    Read More
+                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-16">
+          <h2 class="text-2xl font-display font-semibold text-gray-900 mb-4">No posts found</h2>
+          <p class="text-gray-600 mb-8">There are no published posts in this category yet.</p>
+          <a href="/blog" class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+            Back to Blog
+          </a>
+        </div>
+      )}
+      
+      <!-- Categories -->
+      <div class="mt-16">
+        <h3 class="text-2xl font-display font-bold text-gray-900 mb-8 text-center">All Categories</h3>
+        <div class="flex flex-wrap justify-center gap-4">
+          {allCategories.map((cat) => (
+            <a 
+              href={`/blog/category/${cat.slug}`}
+              class={`px-4 py-2 rounded-full transition-colors duration-200 ${
+                cat.slug === category.slug 
+                  ? 'bg-primary-100 text-primary-700' 
+                  : 'bg-gray-100 hover:bg-primary-100 text-gray-700 hover:text-primary-700'
+              }`}
+            >
+              {cat.name} ({cat._count.posts})
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

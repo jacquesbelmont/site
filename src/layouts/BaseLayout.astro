@@ -1,0 +1,150 @@
+---
+import SEOHead from '../components/SEOHead.astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import { getLangFromUrl } from '../utils/i18n';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  keywords?: string[];
+  type?: 'website' | 'article' | 'product';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  section?: string;
+  tags?: string[];
+}
+
+const { 
+  title, 
+  description, 
+  image, 
+  keywords,
+  type,
+  publishedTime,
+  modifiedTime,
+  author,
+  section,
+  tags 
+} = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang={lang} dir={lang === 'ar' ? 'rtl' : 'ltr'} class="scroll-smooth">
+  <head>
+    <SEOHead 
+      title={title}
+      description={description} 
+      image={image}
+      url={Astro.url.href}
+      lang={lang}
+      keywords={keywords}
+      type={type}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      author={author}
+      section={section}
+      tags={tags}
+    />
+  </head>
+  <body class="font-sans antialiased">
+    <Navigation lang={lang} currentPath={currentPath} />
+    <main class="pt-16">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    
+    <!-- Global Styles -->
+    <style is:global>
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      
+      .font-display {
+        font-family: 'Poppins', system-ui, sans-serif;
+      }
+      
+      /* Custom animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+      
+      .animate-fade-in {
+        animation: fadeIn 0.6s ease-out;
+      }
+      
+      .animate-slide-up {
+        animation: slideUp 0.8s ease-out;
+      }
+      
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      
+      /* RTL Support for Arabic */
+      html[dir="rtl"] {
+        text-align: right;
+      }
+      
+      html[dir="rtl"] .flex {
+        flex-direction: row-reverse;
+      }
+      
+      html[dir="rtl"] .space-x-4 > * + * {
+        margin-left: 0;
+        margin-right: 1rem;
+      }
+      
+      html[dir="rtl"] .ml-2 {
+        margin-left: 0;
+        margin-right: 0.5rem;
+      }
+      
+      html[dir="rtl"] .mr-2 {
+        margin-right: 0;
+        margin-left: 0.5rem;
+      }
+      
+      /* Smooth scrolling for all browsers */
+      * {
+        scroll-behavior: smooth;
+      }
+    </style>
+  </body>
+</html>

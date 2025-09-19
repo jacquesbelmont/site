@@ -1,0 +1,111 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { prisma } from '../../lib/database';
+
+const lang = 'en';
+
+// Fetch blog posts from database
+const blogPosts = await prisma.post.findMany({
+  where: { published: true },
+  include: {
+    author: { select: { name: true } },
+    category: true,
+    tags: { include: { tag: true } },
+    _count: { select: { comments: true } }
+  },
+  orderBy: { publishedAt: 'desc' },
+  take: 12
+});
+
+const categories = await prisma.category.findMany({
+  include: { _count: { select: { posts: true } } }
+});
+---
+
+<BaseLayout 
+  title="Blog - Jacques Belmont"
+  description="Digital marketing insights, SEO tips, and AI optimization strategies from Jacques Belmont."
+>
+  <!-- Hero Section -->
+  <section class="py-20 bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl lg:text-5xl font-display font-bold text-gray-900 mb-6">
+        Digital Marketing Blog
+      </h1>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Insights, strategies, and tips to help you succeed in the digital world
+      </p>
+    </div>
+  </section>
+
+  <!-- Blog Posts Grid -->
+  <section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {blogPosts.map((post) => (
+          <article class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
+            <div class="aspect-video overflow-hidden">
+              <img 
+                src={post.image || 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                alt={post.title}
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+            
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded-full">
+                  {post.category.name}
+                </span>
+                <span class="text-gray-500 text-sm">{post.readTime || '5 min read'}</span>
+              </div>
+              
+              <h2 class="text-xl font-display font-semibold text-gray-900 mb-3 line-clamp-2">
+                {post.title}
+              </h2>
+              
+              <p class="text-gray-600 mb-4 line-clamp-3">
+                {post.excerpt}
+              </p>
+              
+              <div class="flex items-center justify-between">
+                <span class="text-gray-500 text-sm">
+                  {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
+                <a 
+                  href={`/blog/${post.slug}`}
+                  class="text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center"
+                >
+                  Read More
+                  <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+      
+      <!-- Categories Sidebar -->
+      <div class="mt-16">
+        <h3 class="text-2xl font-display font-bold text-gray-900 mb-8 text-center">Categories</h3>
+        <div class="flex flex-wrap justify-center gap-4">
+          {categories.map((category) => (
+            <a 
+              href={`/blog/category/${category.slug}`}
+              class="px-4 py-2 bg-gray-100 hover:bg-primary-100 text-gray-700 hover:text-primary-700 rounded-full transition-colors duration-200"
+            >
+              {category.name} ({category._count.posts})
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

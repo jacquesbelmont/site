@@ -1,0 +1,217 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Configurações Gerais">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Configurações Gerais</h1>
+      <p class="text-gray-600">Gerencie as configurações globais do sistema</p>
+    </div>
+
+    <!-- Site Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Configurações do Site</h2>
+      <form id="site-settings-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Site</label>
+            <input type="text" id="site-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="Jacques Belmont">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">URL do Site</label>
+            <input type="url" id="site-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="https://jacquesbelmont.com">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Descrição do Site</label>
+          <textarea id="site-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">Professional digital marketing consultant specializing in SEO, content strategy, and AI optimization.</textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email de Contato</label>
+            <input type="email" id="contact-email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="contact@jacquesbelmont.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+            <input type="tel" id="contact-phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="+55 (83) 9 9999-9999">
+          </div>
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+          Salvar Configurações do Site
+        </button>
+      </form>
+    </div>
+
+    <!-- Social Media Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Redes Sociais</h2>
+      <form id="social-settings-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
+            <input type="url" id="linkedin-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="https://linkedin.com/in/jacquesbelmont">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">YouTube</label>
+            <input type="url" id="youtube-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="https://youtube.com/@jacquesbelmont">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">GitHub</label>
+            <input type="url" id="github-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="https://github.com/jacquesbelmont">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Twitter</label>
+            <input type="url" id="twitter-url" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   value="https://twitter.com/jacquesbelmont">
+          </div>
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+          Salvar Redes Sociais
+        </button>
+      </form>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Configurações de Email</h2>
+      <form id="email-settings-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Servidor SMTP</label>
+            <input type="text" id="smtp-host" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="smtp.gmail.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Porta SMTP</label>
+            <input type="number" id="smtp-port" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="587">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Usuário SMTP</label>
+            <input type="email" id="smtp-user" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="your-email@gmail.com">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Senha SMTP</label>
+            <input type="password" id="smtp-pass" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="your-app-password">
+          </div>
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+          Salvar Configurações de Email
+        </button>
+      </form>
+    </div>
+
+    <!-- Backup & Maintenance -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Backup e Manutenção</h2>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div>
+            <h3 class="text-sm font-medium text-gray-900">Backup Automático</h3>
+            <p class="text-sm text-gray-600">Backup diário do banco de dados</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+        
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div>
+            <h3 class="text-sm font-medium text-gray-900">Modo de Manutenção</h3>
+            <p class="text-sm text-gray-600">Ativar página de manutenção</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+        
+        <div class="flex space-x-4">
+          <button class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+            Fazer Backup Agora
+          </button>
+          <button class="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">
+            Limpar Cache
+          </button>
+          <button class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+            Otimizar Banco
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Informações do Sistema</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Versão do Sistema</h3>
+          <p class="text-sm text-gray-900">v1.0.0</p>
+        </div>
+        
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Última Atualização</h3>
+          <p class="text-sm text-gray-900">15/01/2024 14:30</p>
+        </div>
+        
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Banco de Dados</h3>
+          <p class="text-sm text-gray-900">PostgreSQL 15.0</p>
+        </div>
+        
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Espaço Usado</h3>
+          <p class="text-sm text-gray-900">2.3 GB / 10 GB</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Form submissions
+      document.getElementById('site-settings-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Configurações do site salvas com sucesso!');
+      });
+
+      document.getElementById('social-settings-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Configurações de redes sociais salvas com sucesso!');
+      });
+
+      document.getElementById('email-settings-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Configurações de email salvas com sucesso!');
+      });
+    });
+  </script>
+</AdminLayout>

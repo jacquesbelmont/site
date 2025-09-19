@@ -1,0 +1,81 @@
+---
+import { getTranslations } from '../i18n/translations';
+
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+const t = getTranslations(lang);
+---
+
+<section id="about" class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+      <!-- Content -->
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <h2 class="text-4xl lg:text-5xl font-display font-bold text-gray-900">
+            {t.about.title}
+          </h2>
+          <p class="text-xl text-primary-600 font-medium">
+            {t.about.subtitle}
+          </p>
+        </div>
+        
+        <p class="text-lg text-gray-700 leading-relaxed">
+          {t.about.description}
+        </p>
+        
+        <!-- Skills -->
+        <div class="space-y-4">
+          <h3 class="text-2xl font-display font-semibold text-gray-900">
+            {t.about.skills}
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-3">
+            {t.about.skillsList.map((skill: string) => (
+              <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-primary-50 transition-colors duration-200">
+                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-gray-700 font-medium">{skill}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-primary-600">10+</div>
+            <div class="text-sm text-gray-600 mt-1">Years Experience</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-primary-600">500+</div>
+            <div class="text-sm text-gray-600 mt-1">Projects Completed</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-primary-600">50+</div>
+            <div class="text-sm text-gray-600 mt-1">Happy Clients</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Image -->
+      <div class="relative">
+        <div class="aspect-square rounded-2xl bg-gradient-to-br from-primary-100 to-secondary-100 overflow-hidden">
+          <img 
+            src="https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=800"
+            alt="Jacques Belmont - Digital Marketing Expert"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        </div>
+        
+        <!-- Floating Elements -->
+        <div class="absolute -top-4 -right-4 w-20 h-20 bg-primary-500 rounded-full opacity-20 animate-float"></div>
+        <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-secondary-500 rounded-full opacity-20 animate-float" style="animation-delay: 2s;"></div>
+      </div>
+    </div>
+  </div>
+</section>

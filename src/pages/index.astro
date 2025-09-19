@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Services from '../components/Services.astro';
+import Contact from '../components/Contact.astro';
+import { SITE_CONFIG } from '../config/site';
+
+const lang = 'en';
+---
+
+<BaseLayout 
+  title={SITE_CONFIG.title}
+  description={SITE_CONFIG.description}
+  image={SITE_CONFIG.image}
+>
+  <Hero lang={lang} />
+  <About lang={lang} />
+  <Services lang={lang} />
+  <Contact lang={lang} />
+</BaseLayout>
