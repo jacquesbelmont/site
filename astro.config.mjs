@@ -6,7 +6,7 @@ import node from '@astrojs/node';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://jacquesbelmont.com',
-  output: 'hybrid',
+  output: 'server', // [!code ++]
   adapter: node({
     mode: 'standalone'
   }),
