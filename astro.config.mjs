@@ -1,15 +1,13 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel/serverless'; // [!code ++]
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://jacquesbelmont.com',
-  output: 'server', // [!code ++]
-  adapter: node({
-    mode: 'standalone'
-  }),
+  output: 'server',
+  adapter: vercel(), // [!code ++]
   integrations: [tailwind(), sitemap({
     i18n: {
       defaultLocale: 'en',
