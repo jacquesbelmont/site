@@ -7,8 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -19,10 +18,11 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  posts     Post[]
-  comments  Comment[]
-  
+
+  posts         Post[]
+  comments      Comment[]
+  adminSessions AdminSession[] // [!code ++]
+
   @@map("users")
 }
 
