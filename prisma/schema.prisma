@@ -21,7 +21,7 @@ model User {
 
   posts         Post[]
   comments      Comment[]
-  adminSessions AdminSession[] // [!code ++]
+  adminSessions AdminSession[] // ADICIONE ESTA LINHA
 
   @@map("users")
 }
