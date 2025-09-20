@@ -12,7 +12,9 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/lib/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force && npm run db:seed",
+    "postbuild": "prisma generate"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",

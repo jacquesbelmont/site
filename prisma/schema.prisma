@@ -7,7 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model User {
@@ -143,6 +144,55 @@ model Video {
   @@map("videos")
 }
 
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  longDescription String?
+  price       Decimal  @db.Decimal(10,2)
+  image       String?
+  category    ProductCategory
+  type        ProductType
+  downloadUrl String?
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  orders      OrderItem[]
+  
+  @@map("products")
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  customerName String
+  customerEmail String
+  total       Decimal  @db.Decimal(10,2)
+  status      OrderStatus @default(PENDING)
+  stripePaymentId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  items       OrderItem[]
+  
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  quantity  Int    @default(1)
+  price     Decimal @db.Decimal(10,2)
+  
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  
+  @@map("order_items")
+}
+
 model SeoSettings {
   id              String @id @default(cuid())
   siteTitle       String
@@ -161,6 +211,17 @@ model SeoSettings {
   @@map("seo_settings")
 }
 
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@map("admin_sessions")
+}
+
 enum Role {
   USER
   ADMIN
@@ -176,4 +237,26 @@ enum MemberStatus {
   ACTIVE
   INACTIVE
   CANCELLED
+}
+
+enum ProductCategory {
+  TEMPLATES
+  COURSES
+  CONSULTATION
+  EBOOKS
+  SOFTWARE
+  MARKETPLACE
+}
+
+enum ProductType {
+  DIGITAL
+  SERVICE
+  PHYSICAL
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
 }

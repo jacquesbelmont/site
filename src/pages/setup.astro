@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Database Setup - Jacques Belmont">
+  <div class="min-h-screen bg-gray-50 py-20">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Database Setup</h1>
+        
+        <div class="space-y-6">
+          <!-- Database Status -->
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Database Status</h2>
+            <div id="db-status" class="space-y-2">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-gray-400 rounded-full mr-3"></div>
+                <span class="text-gray-600">Checking connection...</span>
+              </div>
+            </div>
+            <button 
+              id="check-db" 
+              class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            >
+              Check Database
+            </button>
+          </div>
+          
+          <!-- Database Actions -->
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Database Actions</h2>
+            <div class="space-y-4">
+              <div>
+                <button 
+                  id="seed-db" 
+                  class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 mr-4"
+                >
+                  Seed Database
+                </button>
+                <span class="text-gray-600">Add sample data to the database</span>
+              </div>
+              
+              <div>
+                <button 
+                  id="reset-db" 
+                  class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 mr-4"
+                >
+                  Reset Database
+                </button>
+                <span class="text-gray-600">⚠️ This will delete all data and reseed</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Logs -->
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Logs</h2>
+            <div 
+              id="logs" 
+              class="bg-gray-900 text-green-400 p-4 rounded-md font-mono text-sm h-64 overflow-y-auto"
+            >
+              <div>Ready to setup database...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const checkDbBtn = document.getElementById('check-db');
+      const seedDbBtn = document.getElementById('seed-db');
+      const resetDbBtn = document.getElementById('reset-db');
+      const dbStatus = document.getElementById('db-status');
+      const logs = document.getElementById('logs');
+      
+      function addLog(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        logs.appendChild(logEntry);
+        logs.scrollTop = logs.scrollHeight;
+      }
+      
+      function updateStatus(connected, tables = []) {
+        dbStatus.innerHTML = `
+          <div class="flex items-center mb-2">
+            <div class="w-3 h-3 ${connected ? 'bg-green-500' : 'bg-red-500'} rounded-full mr-3"></div>
+            <span class="text-gray-900 font-medium">
+              ${connected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+          <div class="text-sm text-gray-600">
+            Tables found: ${tables.length}
+          </div>
+        `;
+      }
+      
+      checkDbBtn?.addEventListener('click', async () => {
+        addLog('Checking database connection...');
+        try {
+          const response = await fetch('/api/setup/database', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'check' })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            addLog(`Database connected successfully. Found ${data.tables.length} tables.`, 'success');
+            updateStatus(true, data.tables);
+          } else {
+            addLog('Database connection failed', 'error');
+            updateStatus(false);
+          }
+        } catch (error) {
+          addLog(`Error: ${error.message}`, 'error');
+          updateStatus(false);
+        }
+      });
+      
+      seedDbBtn?.addEventListener('click', async () => {
+        if (!confirm('This will add sample data to your database. Continue?')) return;
+        
+        addLog('Seeding database...');
+        try {
+          const response = await fetch('/api/setup/database', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'seed' })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            addLog('Database seeded successfully!', 'success');
+          } else {
+            addLog(`Seed failed: ${data.error}`, 'error');
+          }
+        } catch (error) {
+          addLog(`Error: ${error.message}`, 'error');
+        }
+      });
+      
+      resetDbBtn?.addEventListener('click', async () => {
+        if (!confirm('⚠️ This will DELETE ALL DATA and reseed the database. Are you sure?')) return;
+        if (!confirm('This action cannot be undone. Continue?')) return;
+        
+        addLog('Resetting database...', 'error');
+        try {
+          const response = await fetch('/api/setup/database', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reset' })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            addLog('Database reset and seeded successfully!', 'success');
+          } else {
+            addLog(`Reset failed: ${data.error}`, 'error');
+          }
+        } catch (error) {
+          addLog(`Error: ${error.message}`, 'error');
+        }
+      });
+      
+      // Auto-check on load
+      checkDbBtn?.click();
+    });
+  </script>
+</BaseLayout>

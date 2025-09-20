@@ -75,7 +75,7 @@ export const GET: APIRoute = async ({ url }) => {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const token = cookies.get('auth-token')?.value;
+    const token = cookies.get('admin-token')?.value;
     if (!token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -113,6 +113,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
+    // Ensure category exists
+    if (!categoryId) {
+      return new Response(JSON.stringify({ error: 'Category is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const post = await prisma.post.create({
       data: {
         title,
@@ -129,11 +137,6 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         seoKeywords,
         readTime,
         publishedAt: published ? new Date() : null,
-        tags: {
-          create: tags.map((tagId: string) => ({
-            tagId
-          }))
-        }
       },
       include: {
         author: { select: { name: true, email: true } },
@@ -141,6 +144,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         tags: { include: { tag: true } }
       }
     });
+
+    // Add tags if provided
+    if (tags.length > 0) {
+      await prisma.postTag.createMany({
+        data: tags.map((tagId: string) => ({
+          postId: post.id,
+          tagId
+        }))
+      });
+    }
 
     return new Response(JSON.stringify(post), {
       status: 201,

@@ -4,10 +4,19 @@
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
+  "functions": {
+    "src/pages/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/admin/(.*)",
       "destination": "/admin/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ],
   "headers": [
@@ -28,5 +37,9 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "POSTGRES_PRISMA_URL": "@postgres_prisma_url",
+    "POSTGRES_URL_NON_POOLING": "@postgres_url_non_pooling"
+  }
 }

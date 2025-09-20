@@ -4,7 +4,9 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-export const prisma = globalThis.__prisma || new PrismaClient();
+export const prisma = globalThis.__prisma || new PrismaClient({
+  log: ['query', 'error', 'warn'],
+});
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;
@@ -24,4 +26,15 @@ export async function connectDatabase() {
 // Disconnect database
 export async function disconnectDatabase() {
   await prisma.$disconnect();
+}
+
+// Health check
+export async function checkDatabaseHealth() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return { status: 'healthy', timestamp: new Date() };
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    return { status: 'unhealthy', error: error.message, timestamp: new Date() };
+  }
 }

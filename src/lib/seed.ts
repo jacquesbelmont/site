@@ -10,9 +10,10 @@ export async function seedDatabase() {
       where: { email: 'admin@jacquesbelmont.com' }
     });
 
+    let adminUser;
     if (!adminExists) {
       const hashedPassword = await hashPassword('admin123');
-      await prisma.user.create({
+      adminUser = await prisma.user.create({
         data: {
           email: 'admin@jacquesbelmont.com',
           password: hashedPassword,
@@ -21,14 +22,16 @@ export async function seedDatabase() {
         }
       });
       console.log('Admin user created');
+    } else {
+      adminUser = adminExists;
     }
 
     // Create categories
     const categories = [
-      { name: 'Digital Marketing', slug: 'digital-marketing', description: 'Articles about digital marketing strategies and trends' },
-      { name: 'SEO', slug: 'seo', description: 'Search Engine Optimization tips and techniques' },
-      { name: 'AI & Technology', slug: 'ai-technology', description: 'Artificial Intelligence and technology insights' },
-      { name: 'Content Marketing', slug: 'content-marketing', description: 'Content creation and marketing strategies' }
+      { name: 'Digital Marketing', slug: 'digital-marketing', description: 'Articles about digital marketing strategies and trends', color: '#3B82F6' },
+      { name: 'SEO', slug: 'seo', description: 'Search Engine Optimization tips and techniques', color: '#10B981' },
+      { name: 'AI & Technology', slug: 'ai-technology', description: 'Artificial Intelligence and technology insights', color: '#8B5CF6' },
+      { name: 'Content Marketing', slug: 'content-marketing', description: 'Content creation and marketing strategies', color: '#F59E0B' }
     ];
 
     for (const category of categories) {
@@ -42,12 +45,12 @@ export async function seedDatabase() {
 
     // Create tags
     const tags = [
-      { name: 'SEO', slug: 'seo' },
-      { name: 'Content', slug: 'content' },
-      { name: 'AI', slug: 'ai' },
-      { name: 'Marketing', slug: 'marketing' },
-      { name: 'Strategy', slug: 'strategy' },
-      { name: 'Analytics', slug: 'analytics' }
+      { name: 'SEO', slug: 'seo', color: '#10B981' },
+      { name: 'Content', slug: 'content', color: '#3B82F6' },
+      { name: 'AI', slug: 'ai', color: '#8B5CF6' },
+      { name: 'Marketing', slug: 'marketing', color: '#F59E0B' },
+      { name: 'Strategy', slug: 'strategy', color: '#EF4444' },
+      { name: 'Analytics', slug: 'analytics', color: '#06B6D4' }
     ];
 
     for (const tag of tags) {
@@ -60,15 +63,15 @@ export async function seedDatabase() {
     console.log('Tags created');
 
     // Create sample blog posts
-    const admin = await prisma.user.findUnique({
-      where: { email: 'admin@jacquesbelmont.com' }
-    });
-
     const seoCategory = await prisma.category.findUnique({
       where: { slug: 'seo' }
     });
 
-    if (admin && seoCategory) {
+    const aiCategory = await prisma.category.findUnique({
+      where: { slug: 'ai-technology' }
+    });
+
+    if (adminUser && seoCategory && aiCategory) {
       const samplePosts = [
         {
           title: 'The Future of SEO in 2024',
@@ -94,7 +97,7 @@ export async function seedDatabase() {
           image: 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800',
           published: true,
           featured: true,
-          authorId: admin.id,
+          authorId: adminUser.id,
           categoryId: seoCategory.id,
           seoTitle: 'The Future of SEO in 2024 - Complete Guide',
           seoDescription: 'Discover the latest SEO trends and strategies that will dominate 2024. Learn about AI-powered optimization, Core Web Vitals, and voice search.',
@@ -126,8 +129,8 @@ export async function seedDatabase() {
           image: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800',
           published: true,
           featured: false,
-          authorId: admin.id,
-          categoryId: seoCategory.id,
+          authorId: adminUser.id,
+          categoryId: aiCategory.id,
           seoTitle: 'Best AI Tools for Content Creation in 2024',
           seoDescription: 'Discover the top AI tools that can revolutionize your content creation process. Complete guide to AI-powered writing and optimization.',
           seoKeywords: 'AI content creation, AI writing tools, GPT-4, Jasper AI, Copy.ai',
@@ -145,6 +148,86 @@ export async function seedDatabase() {
       }
       console.log('Sample blog posts created');
     }
+
+    // Create sample products
+    const sampleProducts = [
+      {
+        name: 'SEO Templates Pack',
+        slug: 'seo-templates-pack',
+        description: 'Complete collection of SEO templates and checklists',
+        longDescription: 'This comprehensive pack includes over 25 SEO templates, checklists, and guides to help you optimize your website and content for search engines.',
+        price: 29.00,
+        image: 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800',
+        category: 'TEMPLATES',
+        type: 'DIGITAL',
+        featured: true,
+        active: true
+      },
+      {
+        name: 'Digital Marketing Masterclass',
+        slug: 'digital-marketing-masterclass',
+        description: 'Complete course on digital marketing strategies',
+        longDescription: 'Learn everything you need to know about digital marketing in this comprehensive 10-hour video course.',
+        price: 199.00,
+        image: 'https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=800',
+        category: 'COURSES',
+        type: 'DIGITAL',
+        featured: true,
+        active: true
+      },
+      {
+        name: '1-on-1 Marketing Consultation',
+        slug: 'marketing-consultation',
+        description: 'Personal marketing strategy session',
+        longDescription: 'Get personalized marketing advice and strategy recommendations in a 1-hour consultation session.',
+        price: 299.00,
+        image: 'https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=800',
+        category: 'CONSULTATION',
+        type: 'SERVICE',
+        featured: false,
+        active: true
+      }
+    ];
+
+    for (const product of sampleProducts) {
+      await prisma.product.upsert({
+        where: { slug: product.slug },
+        update: {},
+        create: product
+      });
+    }
+    console.log('Sample products created');
+
+    // Create sample videos
+    const sampleVideos = [
+      {
+        title: 'Digital Marketing Trends 2024',
+        description: 'Discover the latest trends in digital marketing and how to implement them.',
+        youtubeId: 'dQw4w9WgXcQ',
+        thumbnail: 'https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=800',
+        duration: '12:34',
+        published: true,
+        featured: true
+      },
+      {
+        title: 'SEO Best Practices Guide',
+        description: 'Learn the most effective SEO techniques for 2024.',
+        youtubeId: 'dQw4w9WgXcQ',
+        thumbnail: 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800',
+        duration: '18:45',
+        published: true,
+        featured: false
+      }
+    ];
+
+    for (const video of sampleVideos) {
+      await prisma.video.upsert({
+        where: { youtubeId: video.youtubeId },
+        update: {},
+        create: video
+      });
+    }
+    console.log('Sample videos created');
 
     // Create SEO settings
     await prisma.seoSettings.upsert({
