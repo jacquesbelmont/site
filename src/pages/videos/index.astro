@@ -5,70 +5,55 @@ import { getTranslations } from '../../i18n/translations';
 const lang = 'en';
 const t = getTranslations(lang);
 
-// Mock YouTube videos data - in a real app, this would come from YouTube API
-const videos = [
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'Digital Marketing Trends 2024',
-    description: 'Discover the latest trends in digital marketing and how to implement them in your business strategy.',
-    thumbnail: 'https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '12:34',
-    views: '15K',
-    publishedAt: '2024-01-15'
-  },
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'SEO Optimization Masterclass',
-    description: 'Learn advanced SEO techniques to boost your website rankings and organic traffic.',
-    thumbnail: 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '18:45',
-    views: '23K',
-    publishedAt: '2024-01-10'
-  },
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'AI Tools for Content Creation',
-    description: 'Explore the best AI tools for creating engaging content that converts visitors into customers.',
-    thumbnail: 'https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '15:22',
-    views: '31K',
-    publishedAt: '2024-01-05'
-  },
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'Social Media Strategy Deep Dive',
-    description: 'Build a comprehensive social media strategy that drives engagement and business growth.',
-    thumbnail: 'https://images.pexels.com/photos/7688336/pexels-photo-7688336.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '20:15',
-    views: '18K',
-    publishedAt: '2024-01-01'
-  },
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'Email Marketing Automation',
-    description: 'Set up automated email campaigns that nurture leads and increase customer lifetime value.',
-    thumbnail: 'https://images.pexels.com/photos/4439901/pexels-photo-4439901.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '14:30',
-    views: '12K',
-    publishedAt: '2023-12-28'
-  },
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'Analytics and Data-Driven Marketing',
-    description: 'Use data analytics to make informed marketing decisions and optimize your campaigns.',
-    thumbnail: 'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=800',
-    duration: '16:45',
-    views: '25K',
-    publishedAt: '2023-12-25'
+// Obtém as chaves de ambiente de forma segura
+const API_KEY = import.meta.env.YOUTUBE_API_KEY;
+const CHANNEL_ID = import.meta.env.YOUTUBE_CHANNEL_ID;
+
+// A API do YouTube usa um ID de playlist especial para os "uploads" de um canal.
+// Basta substituir o "UC" inicial do ID do canal por "UU".
+const UPLOADS_PLAYLIST_ID = CHANNEL_ID ? CHANNEL_ID.replace('UC', 'UU') : null;
+
+const YOUTUBE_API_URL = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${UPLOADS_PLAYLIST_ID}&maxResults=12&key=${API_KEY}`;
+
+let videos = [];
+let error = null;
+
+try {
+  // Verifica se as variáveis de ambiente essenciais foram configuradas
+  if (!API_KEY || !CHANNEL_ID) {
+    throw new Error("As variáveis de ambiente YOUTUBE_API_KEY e YOUTUBE_CHANNEL_ID precisam de ser configuradas na Vercel.");
   }
-];
+
+  const response = await fetch(YOUTUBE_API_URL);
+  const data = await response.json();
+
+  if (!response.ok) {
+    // Captura mensagens de erro da própria API do YouTube
+    throw new Error(data.error?.message || 'Ocorreu um erro ao buscar os vídeos. Verifique a sua Chave de API.');
+  }
+
+  // Mapeia os dados da API para o formato que o seu site espera
+  videos = data.items.map((item: any) => ({
+    id: item.snippet.resourceId.videoId,
+    title: item.snippet.title,
+    description: item.snippet.description,
+    thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+    publishedAt: new Date(item.snippet.publishedAt).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' }),
+    // Nota: A duração e as visualizações não vêm desta chamada de API, teríamos de fazer chamadas adicionais.
+    duration: '',
+    views: ''
+  }));
+
+} catch (e) {
+  console.error(e);
+  error = (e as Error).message;
+}
 ---
 
-<BaseLayout 
+<BaseLayout
   title="Video Gallery - Jacques Belmont"
   description="Watch my latest YouTube videos about digital marketing, SEO, and AI optimization strategies."
 >
-  <!-- Hero Section -->
   <section class="py-20 bg-gradient-to-br from-red-50 via-white to-pink-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <div class="flex items-center justify-center mb-6">
@@ -82,9 +67,9 @@ const videos = [
       <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
         Watch my latest YouTube videos about digital marketing strategies, SEO tips, and AI optimization
       </p>
-      <a 
-        href="https://youtube.com/@jacquesbelmont" 
-        target="_blank" 
+      <a
+        href="https://youtube.com/@jacquesbelmont"
+        target="_blank"
         rel="noopener noreferrer"
         class="inline-flex items-center px-8 py-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transform hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl"
       >
@@ -96,92 +81,62 @@ const videos = [
     </div>
   </section>
 
-  <!-- Featured Video -->
-  <section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Featured Video</h2>
-        <p class="text-gray-600">My latest insights on digital marketing</p>
-      </div>
-      
-      <div class="max-w-4xl mx-auto">
-        <div class="aspect-video bg-gray-100 rounded-2xl overflow-hidden shadow-2xl">
-          <iframe
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-            title="Featured Video"
-            class="w-full h-full"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Video Grid -->
   <section class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-3xl font-display font-bold text-gray-900 mb-4">Latest Videos</h2>
         <p class="text-gray-600">Explore my complete video library</p>
       </div>
-      
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {videos.map((video) => (
-          <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden group">
-            <div class="relative aspect-video overflow-hidden">
-              <img 
-                src={video.thumbnail}
-                alt={video.title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              
-              <!-- Play Button Overlay -->
-              <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button 
-                  class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transform hover:scale-110 transition-all duration-200"
-                  onclick={`openVideoModal('${video.id}')`}
-                >
-                  <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </button>
+
+      {error ? (
+        <div class="text-center text-red-600 bg-red-100 p-6 rounded-lg shadow-md">
+          <h3 class="font-bold text-lg mb-2">Oops! Algo correu mal ao buscar os vídeos.</h3>
+          <p class="text-sm">{error}</p>
+          <p class="text-xs mt-4">Por favor, verifique se as variáveis de ambiente `YOUTUBE_API_KEY` e `YOUTUBE_CHANNEL_ID` estão configuradas corretamente no painel da Vercel.</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {videos.map((video) => (
+            <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden group">
+              <div class="relative aspect-video overflow-hidden">
+                <img
+                  src={video.thumbnail}
+                  alt={video.title}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button
+                    class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transform hover:scale-110 transition-all duration-200"
+                    onclick={`openVideoModal('${video.id}')`}
+                  >
+                    <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
-              
-              <!-- Duration Badge -->
-              <div class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                {video.duration}
-              </div>
-            </div>
-            
-            <div class="p-6">
-              <h3 class="text-lg font-display font-semibold text-gray-900 mb-2 line-clamp-2">
-                {video.title}
-              </h3>
-              
-              <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-                {video.description}
-              </p>
-              
-              <div class="flex items-center justify-between text-sm text-gray-500">
-                <span>{video.views} views</span>
-                <span>{new Date(video.publishedAt).toLocaleDateString()}</span>
+
+              <div class="p-6">
+                <h3 class="text-lg font-display font-semibold text-gray-900 mb-2 line-clamp-2" title={video.title}>
+                  {video.title}
+                </h3>
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                  <span>Publicado em: {video.publishedAt}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 
-  <!-- Video Modal -->
   <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b">
         <h3 class="text-lg font-semibold">Video Player</h3>
-        <button 
+        <button
           onclick="closeVideoModal()"
           class="text-gray-500 hover:text-gray-700 p-2"
         >
@@ -189,7 +144,7 @@ const videos = [
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
-      </div>
+       </div>
       <div class="aspect-video">
         <iframe
           id="modal-video"
@@ -235,4 +190,3 @@ const videos = [
     }
   });
 </script>
-</BaseLayout>
