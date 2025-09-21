@@ -5,9 +5,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Bloco CORRETO
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model User {
