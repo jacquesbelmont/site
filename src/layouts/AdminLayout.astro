@@ -199,20 +199,6 @@ const { title } = Astro.props;
         }
       }
 
-      // Legacy check for existing sessions
-      function isAuthenticated() {
-        const session = localStorage.getItem(ADMIN_CONFIG.session.cookieName);
-        if (!session) return false;
-        
-        try {
-          const sessionData = JSON.parse(session);
-          const now = Date.now();
-          return sessionData.expires > now;
-        } catch {
-          return false;
-        }
-      }
-
       function authenticate(username, password) {
         if (username === ADMIN_CONFIG.credentials.username && 
             password === ADMIN_CONFIG.credentials.password) {
