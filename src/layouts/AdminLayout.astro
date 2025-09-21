@@ -198,50 +198,6 @@ const { title } = Astro.props;
           loading.classList.add('hidden');
         }
       }
-
-      function authenticate(username, password) {
-        if (username === ADMIN_CONFIG.credentials.username && 
-            password === ADMIN_CONFIG.credentials.password) {
-          const sessionData = {
-            authenticated: true,
-            expires: Date.now() + ADMIN_CONFIG.session.duration,
-          };
-          localStorage.setItem(ADMIN_CONFIG.session.cookieName, JSON.stringify(sessionData));
-          return true;
-        }
-        return false;
-      }
-
-      // Fallback authentication for development
-      function handleFallbackAuth() {
-        const authCheck = document.getElementById('auth-check');
-        const adminContent = document.getElementById('admin-content');
-        const loginForm = document.getElementById('login-form');
-        const errorMessage = document.getElementById('error-message');
-
-        if (isAuthenticated()) {
-          authCheck.classList.add('hidden');
-          adminContent.classList.remove('hidden');
-        } else {
-          authCheck.classList.remove('hidden');
-          adminContent.classList.add('hidden');
-        }
-
-        // Handle login form
-        loginForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const username = document.getElementById('username').value;
-          const password = document.getElementById('password').value;
-
-          if (authenticate(username, password)) {
-            authCheck.classList.add('hidden');
-            adminContent.classList.remove('hidden');
-          } else {
-            errorMessage.textContent = 'Credenciais inválidas';
-            errorMessage.classList.remove('hidden');
-          }
-        });
-      }
     </script>
   </body>
 </html>
