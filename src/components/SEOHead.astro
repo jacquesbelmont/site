@@ -122,3 +122,98 @@ const schema = structuredData || generateStructuredData(type, {
 <!-- DNS Prefetch -->
 <link rel="dns-prefetch" href="//www.google-analytics.com" />
 <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+
+<!-- Analytics Scripts -->
+{import.meta.env.PROD && SITE_CONFIG.analytics.googleAnalyticsId && (
+  <>
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${SITE_CONFIG.analytics.googleAnalyticsId}`}></script>
+    <script define:vars={{ gaId: SITE_CONFIG.analytics.googleAnalyticsId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', gaId);
+    </script>
+  </>
+)}
+
+{import.meta.env.PROD && SITE_CONFIG.analytics.googleTagManagerId && (
+  <script define:vars={{ gtmId: SITE_CONFIG.analytics.googleTagManagerId }}>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer', gtmId);
+  </script>
+)}
+
+<!-- Dynamic Analytics Scripts (from database settings) -->
+<script>
+  // Load analytics settings from database and inject scripts dynamically
+  if (typeof window !== 'undefined') {
+    fetch('/api/seo/settings')
+      .then(response => response.json())
+      .then(settings => {
+        if (settings) {
+          // Google Analytics
+          if (settings.gaEnabled && settings.googleAnalytics) {
+            const gaScript = document.createElement('script');
+            gaScript.async = true;
+            gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalytics}`;
+            document.head.appendChild(gaScript);
+            
+            const gaConfig = document.createElement('script');
+            gaConfig.innerHTML = `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${settings.googleAnalytics}');
+            `;
+            document.head.appendChild(gaConfig);
+          }
+          
+          // Google Tag Manager
+          if (settings.gtmEnabled && settings.googleTagManager) {
+            const gtmScript = document.createElement('script');
+            gtmScript.innerHTML = `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','${settings.googleTagManager}');
+            `;
+            document.head.appendChild(gtmScript);
+          }
+          
+          // Hotjar
+          if (settings.hotjarEnabled && settings.hotjarId) {
+            const hotjarScript = document.createElement('script');
+            hotjarScript.innerHTML = `
+              (function(h,o,t,j,a,r){
+                h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+                h._hjSettings={hjid:${settings.hotjarId},hjsv:6};
+                a=o.getElementsByTagName('head')[0];
+                r=o.createElement('script');r.async=1;
+                r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+                a.appendChild(r);
+              })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+            `;
+            document.head.appendChild(hotjarScript);
+          }
+          
+          // Microsoft Clarity
+          if (settings.clarityEnabled && settings.clarityId) {
+            const clarityScript = document.createElement('script');
+            clarityScript.innerHTML = `
+              (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "${settings.clarityId}");
+            `;
+            document.head.appendChild(clarityScript);
+          }
+        }
+      })
+      .catch(error => console.error('Error loading analytics settings:', error));
+  }
+</script>
