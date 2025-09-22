@@ -6,6 +6,7 @@ import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import { getLangFromUrl } from '../utils/i18n';
 import SpeedInsights from "@vercel/speed-insights/astro";
+import { Analytics } from "@vercel/analytics/react";
 
 export interface Props {
   title?: string;
@@ -60,7 +61,8 @@ const currentPath = Astro.url.pathname;
       <slot />
     </main>
     <Footer lang={lang} />
-    <SpeedInsights /> {/* <-- 2. LINHA ADICIONADA */}
+    <SpeedInsights />
+    <Analytics /> 
     
     <style is:global>
       html {
