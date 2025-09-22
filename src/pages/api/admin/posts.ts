@@ -21,11 +21,35 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     }
 
     const searchParams = new URL(url).searchParams;
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
+    // If requesting a specific post by ID
+    if (id) {
+      const post = await prisma.post.findUnique({
+        where: { id },
+        include: {
+          author: { select: { name: true } },
+          category: true,
+          tags: { include: { tag: true } }
+        }
+      });
+      
+      if (!post) {
+        return new Response(JSON.stringify({ error: 'Post not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify(post), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const skip = (page - 1) * limit;
     const where: any = {};
 

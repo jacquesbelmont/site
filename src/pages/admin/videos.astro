@@ -311,8 +311,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         try {
           const response = await fetch(`/api/admin/videos?id=${videoId}`);
           if (response.ok) {
-            const videos = await response.json();
-            const video = videos.videos.find(v => v.id === videoId);
+            const data = await response.json();
+            const video = data.videos ? data.videos.find(v => v.id === videoId) : data;
             
             if (video) {
               document.getElementById('video-title').value = video.title || '';
@@ -326,11 +326,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               editingVideoId = videoId;
               document.querySelector('#new-video-modal h3').textContent = 'Editar Vídeo';
               newVideoModal?.classList.remove('hidden');
+            } else {
+              throw new Error('Video not found');
             }
           }
         } catch (error) {
           console.error('Error loading video:', error);
-          alert('Erro ao carregar vídeo para edição.');
+          showNotification('Erro ao carregar vídeo para edição.', 'error');
         }
       };
       
@@ -347,16 +349,38 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
           
           if (response.ok) {
-            alert('Vídeo excluído com sucesso!');
+            showNotification('Vídeo excluído com sucesso!', 'success');
             loadVideos();
           } else {
-            alert('Erro ao excluir vídeo.');
+            showNotification('Erro ao excluir vídeo.', 'error');
           }
         } catch (error) {
           console.error('Error deleting video:', error);
-          alert('Erro ao excluir vídeo.');
+          showNotification('Erro ao excluir vídeo.', 'error');
         }
       };
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
     
     async function loadVideos() {

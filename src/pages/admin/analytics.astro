@@ -164,25 +164,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadAnalyticsSettings();
+      
       // Form submissions
-      document.getElementById('ga-form')?.addEventListener('submit', (e) => {
+      document.getElementById('ga-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações do Google Analytics salvas!');
+        await saveAnalyticsSettings('ga');
       });
 
-      document.getElementById('gtm-form')?.addEventListener('submit', (e) => {
+      document.getElementById('gtm-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações do Google Tag Manager salvas!');
+        await saveAnalyticsSettings('gtm');
       });
 
-      document.getElementById('hotjar-form')?.addEventListener('submit', (e) => {
+      document.getElementById('hotjar-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações do Hotjar salvas!');
+        await saveAnalyticsSettings('hotjar');
       });
 
-      document.getElementById('clarity-form')?.addEventListener('submit', (e) => {
+      document.getElementById('clarity-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações do Microsoft Clarity salvas!');
+        await saveAnalyticsSettings('clarity');
       });
 
       // Custom events functionality
@@ -210,6 +212,125 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       document.getElementById('save-custom-events')?.addEventListener('click', () => {
         alert('Eventos personalizados salvos com sucesso!');
       });
+      
+      async function loadAnalyticsSettings() {
+        try {
+          const response = await fetch('/api/seo/settings');
+          if (response.ok) {
+            const settings = await response.json();
+            
+            if (settings) {
+              // Google Analytics
+              if (settings.googleAnalytics) {
+                document.getElementById('ga-id').value = settings.googleAnalytics;
+              }
+              if (settings.gaEnabled !== undefined) {
+                document.getElementById('ga-enabled').checked = settings.gaEnabled;
+              }
+              
+              // Google Tag Manager
+              if (settings.googleTagManager) {
+                document.getElementById('gtm-id').value = settings.googleTagManager;
+              }
+              if (settings.gtmEnabled !== undefined) {
+                document.getElementById('gtm-enabled').checked = settings.gtmEnabled;
+              }
+              
+              // Hotjar
+              if (settings.hotjarId) {
+                document.getElementById('hotjar-id').value = settings.hotjarId;
+              }
+              if (settings.hotjarEnabled !== undefined) {
+                document.getElementById('hotjar-enabled').checked = settings.hotjarEnabled;
+              }
+              
+              // Microsoft Clarity
+              if (settings.clarityId) {
+                document.getElementById('clarity-id').value = settings.clarityId;
+              }
+              if (settings.clarityEnabled !== undefined) {
+                document.getElementById('clarity-enabled').checked = settings.clarityEnabled;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading analytics settings:', error);
+          showNotification('Erro ao carregar configurações', 'error');
+        }
+      }
+      
+      async function saveAnalyticsSettings(type) {
+        try {
+          let data = {};
+          
+          switch (type) {
+            case 'ga':
+              data = {
+                googleAnalytics: document.getElementById('ga-id').value,
+                gaEnabled: document.getElementById('ga-enabled').checked
+              };
+              break;
+            case 'gtm':
+              data = {
+                googleTagManager: document.getElementById('gtm-id').value,
+                gtmEnabled: document.getElementById('gtm-enabled').checked
+              };
+              break;
+            case 'hotjar':
+              data = {
+                hotjarId: document.getElementById('hotjar-id').value,
+                hotjarEnabled: document.getElementById('hotjar-enabled').checked
+              };
+              break;
+            case 'clarity':
+              data = {
+                clarityId: document.getElementById('clarity-id').value,
+                clarityEnabled: document.getElementById('clarity-enabled').checked
+              };
+              break;
+          }
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving analytics settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
   </script>
 </AdminLayout>

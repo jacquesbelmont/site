@@ -210,6 +210,30 @@ model SeoSettings {
   hotjarId        String?
   clarityId       String?
   
+  // Site Settings
+  siteName        String?
+  siteUrl         String?
+  contactEmail    String?
+  contactPhone    String?
+  
+  // Social Media
+  linkedinUrl     String?
+  youtubeUrl      String?
+  githubUrl       String?
+  twitterUrl      String?
+  
+  // Email Settings
+  smtpHost        String?
+  smtpPort        Int?
+  smtpUser        String?
+  smtpPass        String?
+  
+  // Analytics Enabled Flags
+  gaEnabled       Boolean @default(false)
+  gtmEnabled      Boolean @default(false)
+  hotjarEnabled   Boolean @default(false)
+  clarityEnabled  Boolean @default(false)
+  
   @@map("seo_settings")
 }
 

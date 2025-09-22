@@ -395,28 +395,29 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         try {
           const response = await fetch(`/api/admin/posts?id=${postId}`);
           if (response.ok) {
-            const post = await response.json();
+            const data = await response.json();
+            const post = data.posts ? data.posts.find(p => p.id === postId) : data;
             
-            // Fill form with post data
-            document.getElementById('post-title').value = post.title || '';
-            document.getElementById('post-slug').value = post.slug || '';
-            document.getElementById('post-excerpt').value = post.excerpt || '';
-            document.getElementById('post-content').value = post.content || '';
-            document.getElementById('post-image').value = post.image || '';
-            document.getElementById('post-status').value = post.published ? 'published' : 'draft';
-            document.getElementById('post-category').value = post.categoryId || '';
-            document.getElementById('post-read-time').value = post.readTime || '';
-            document.getElementById('post-seo-title').value = post.seoTitle || '';
-            document.getElementById('post-seo-description').value = post.seoDescription || '';
-            document.getElementById('post-seo-keywords').value = post.seoKeywords || '';
-            
-            if (document.getElementById('post-featured')) {
-              document.getElementById('post-featured').checked = post.featured || false;
+            if (post) {
+              // Fill form with post data
+              document.getElementById('post-title').value = post.title || '';
+              document.getElementById('post-slug').value = post.slug || '';
+              document.getElementById('post-excerpt').value = post.excerpt || '';
+              document.getElementById('post-content').value = post.content || '';
+              document.getElementById('post-image').value = post.image || '';
+              document.getElementById('post-status').value = post.published ? 'published' : 'draft';
+              document.getElementById('post-category').value = post.categoryId || '';
+              document.getElementById('post-read-time').value = post.readTime || '';
+              document.getElementById('post-seo-title').value = post.seoTitle || '';
+              document.getElementById('post-seo-description').value = post.seoDescription || '';
+              document.getElementById('post-seo-keywords').value = post.seoKeywords || '';
+              
+              editingPostId = postId;
+              document.querySelector('#new-post-modal h3').textContent = 'Editar Post';
+              newPostModal?.classList.remove('hidden');
+            } else {
+              throw new Error('Post not found');
             }
-            
-            editingPostId = postId;
-            document.querySelector('#new-post-modal h3').textContent = 'Editar Post';
-            newPostModal?.classList.remove('hidden');
           }
         } catch (error) {
           console.error('Error loading post:', error);
@@ -437,16 +438,38 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
           
           if (response.ok) {
-            alert('Post excluído com sucesso!');
+            showNotification('Post excluído com sucesso!', 'success');
             loadBlogPosts();
           } else {
-            alert('Erro ao excluir post.');
+            showNotification('Erro ao excluir post.', 'error');
           }
         } catch (error) {
           console.error('Error deleting post:', error);
-          alert('Erro ao excluir post.');
+          showNotification('Erro ao excluir post.', 'error');
         }
       };
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
     
     async function loadCategories() {

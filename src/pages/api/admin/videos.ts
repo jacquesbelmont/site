@@ -21,10 +21,29 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     }
 
     const searchParams = new URL(url).searchParams;
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search');
 
+    // If requesting a specific video by ID
+    if (id) {
+      const video = await prisma.video.findUnique({
+        where: { id }
+      });
+      
+      if (!video) {
+        return new Response(JSON.stringify({ error: 'Video not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify(video), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const skip = (page - 1) * limit;
     const where: any = {};
 

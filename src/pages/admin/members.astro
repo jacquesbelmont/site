@@ -357,7 +357,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           const response = await fetch(`/api/admin/members?id=${memberId}`);
           if (response.ok) {
             const data = await response.json();
-            const member = data.members.find(m => m.id === memberId);
+            const member = data.members ? data.members.find(m => m.id === memberId) : data;
             
             if (member) {
               document.getElementById('member-name').value = member.name || '';
@@ -369,11 +369,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               editingMemberId = memberId;
               document.querySelector('#new-member-modal h3').textContent = 'Editar Membro';
               newMemberModal?.classList.remove('hidden');
+            } else {
+              throw new Error('Member not found');
             }
           }
         } catch (error) {
           console.error('Error loading member:', error);
-          alert('Erro ao carregar membro para edição.');
+          showNotification('Erro ao carregar membro para edição.', 'error');
         }
       };
       
@@ -390,16 +392,38 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
           
           if (response.ok) {
-            alert('Membro excluído com sucesso!');
+            showNotification('Membro excluído com sucesso!', 'success');
             loadMembers();
           } else {
-            alert('Erro ao excluir membro.');
+            showNotification('Erro ao excluir membro.', 'error');
           }
         } catch (error) {
           console.error('Error deleting member:', error);
-          alert('Erro ao excluir membro.');
+          showNotification('Erro ao excluir membro.', 'error');
         }
       };
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
     
     async function loadMembers() {

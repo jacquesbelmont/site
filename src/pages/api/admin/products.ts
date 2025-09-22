@@ -21,11 +21,30 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     }
 
     const searchParams = new URL(url).searchParams;
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const category = searchParams.get('category');
     const search = searchParams.get('search');
 
+    // If requesting a specific product by ID
+    if (id) {
+      const product = await prisma.product.findUnique({
+        where: { id }
+      });
+      
+      if (!product) {
+        return new Response(JSON.stringify({ error: 'Product not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify(product), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const skip = (page - 1) * limit;
     const where: any = {};
 

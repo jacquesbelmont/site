@@ -226,10 +226,30 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       });
 
       // Form submission
-      newPageForm?.addEventListener('submit', (e) => {
+      newPageForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Página salva com sucesso!');
-        newPageModal?.classList.add('hidden');
+        
+        const formData = {
+          title: document.getElementById('page-title').value,
+          slug: document.getElementById('page-slug').value,
+          content: document.getElementById('page-content').value,
+          status: document.getElementById('page-status').value,
+          template: document.getElementById('page-template').value,
+          metaTitle: document.getElementById('page-meta-title').value,
+          metaDescription: document.getElementById('page-meta-description').value,
+          keywords: document.getElementById('page-keywords').value
+        };
+        
+        try {
+          // For now, just show success message since pages are static files
+          // In a real implementation, you'd save to database or file system
+          showNotification('Página salva com sucesso!', 'success');
+          newPageModal?.classList.add('hidden');
+          newPageForm.reset();
+        } catch (error) {
+          console.error('Error saving page:', error);
+          showNotification('Erro ao salvar página.', 'error');
+        }
       });
 
       // Close modal on backdrop click
@@ -238,6 +258,28 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           newPageModal.classList.add('hidden');
         }
       });
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
   </script>
 </AdminLayout>

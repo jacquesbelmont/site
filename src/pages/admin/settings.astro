@@ -197,21 +197,192 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadGeneralSettings();
+      
       // Form submissions
-      document.getElementById('site-settings-form')?.addEventListener('submit', (e) => {
+      document.getElementById('site-settings-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações do site salvas com sucesso!');
+        await saveSiteSettings();
       });
 
-      document.getElementById('social-settings-form')?.addEventListener('submit', (e) => {
+      document.getElementById('social-settings-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações de redes sociais salvas com sucesso!');
+        await saveSocialSettings();
       });
 
-      document.getElementById('email-settings-form')?.addEventListener('submit', (e) => {
+      document.getElementById('email-settings-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações de email salvas com sucesso!');
+        await saveEmailSettings();
       });
+      
+      async function loadGeneralSettings() {
+        try {
+          const response = await fetch('/api/seo/settings');
+          if (response.ok) {
+            const settings = await response.json();
+            
+            if (settings) {
+              // Site Settings
+              if (settings.siteName) {
+                document.getElementById('site-name').value = settings.siteName;
+              }
+              if (settings.siteUrl) {
+                document.getElementById('site-url').value = settings.siteUrl;
+              }
+              if (settings.siteDescription) {
+                document.getElementById('site-description').value = settings.siteDescription;
+              }
+              if (settings.contactEmail) {
+                document.getElementById('contact-email').value = settings.contactEmail;
+              }
+              if (settings.contactPhone) {
+                document.getElementById('contact-phone').value = settings.contactPhone;
+              }
+              
+              // Social Media
+              if (settings.linkedinUrl) {
+                document.getElementById('linkedin-url').value = settings.linkedinUrl;
+              }
+              if (settings.youtubeUrl) {
+                document.getElementById('youtube-url').value = settings.youtubeUrl;
+              }
+              if (settings.githubUrl) {
+                document.getElementById('github-url').value = settings.githubUrl;
+              }
+              if (settings.twitterUrl) {
+                document.getElementById('twitter-url').value = settings.twitterUrl;
+              }
+              
+              // Email Settings
+              if (settings.smtpHost) {
+                document.getElementById('smtp-host').value = settings.smtpHost;
+              }
+              if (settings.smtpPort) {
+                document.getElementById('smtp-port').value = settings.smtpPort;
+              }
+              if (settings.smtpUser) {
+                document.getElementById('smtp-user').value = settings.smtpUser;
+              }
+              if (settings.smtpPass) {
+                document.getElementById('smtp-pass').value = settings.smtpPass;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading general settings:', error);
+          showNotification('Erro ao carregar configurações', 'error');
+        }
+      }
+      
+      async function saveSiteSettings() {
+        try {
+          const data = {
+            siteName: document.getElementById('site-name').value,
+            siteUrl: document.getElementById('site-url').value,
+            siteDescription: document.getElementById('site-description').value,
+            contactEmail: document.getElementById('contact-email').value,
+            contactPhone: document.getElementById('contact-phone').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações do site salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving site settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      async function saveSocialSettings() {
+        try {
+          const data = {
+            linkedinUrl: document.getElementById('linkedin-url').value,
+            youtubeUrl: document.getElementById('youtube-url').value,
+            githubUrl: document.getElementById('github-url').value,
+            twitterUrl: document.getElementById('twitter-url').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações de redes sociais salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving social settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      async function saveEmailSettings() {
+        try {
+          const data = {
+            smtpHost: document.getElementById('smtp-host').value,
+            smtpPort: parseInt(document.getElementById('smtp-port').value) || null,
+            smtpUser: document.getElementById('smtp-user').value,
+            smtpPass: document.getElementById('smtp-pass').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações de email salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving email settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
   </script>
 </AdminLayout>
