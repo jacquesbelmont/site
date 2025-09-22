@@ -21,12 +21,31 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     }
 
     const searchParams = new URL(url).searchParams;
+    const id = searchParams.get('id');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const plan = searchParams.get('plan');
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
+    // If requesting a specific member by ID
+    if (id) {
+      const member = await prisma.member.findUnique({
+        where: { id }
+      });
+      
+      if (!member) {
+        return new Response(JSON.stringify({ error: 'Member not found' }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
+      return new Response(JSON.stringify(member), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     const skip = (page - 1) * limit;
     const where: any = {};
 

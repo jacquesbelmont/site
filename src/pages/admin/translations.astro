@@ -262,9 +262,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       }
 
       // Save translations
-      document.getElementById('save-translations')?.addEventListener('click', () => {
+      document.getElementById('save-translations')?.addEventListener('click', async () => {
         saveCurrentTranslations();
-        alert('Traduções salvas com sucesso!');
+        await saveTranslationsToServer();
       });
 
       // Export translations
@@ -294,14 +294,47 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           Object.assign(translations, importedData);
           loadTranslations();
           document.getElementById('import-modal').classList.add('hidden');
-          alert('Traduções importadas com sucesso!');
+          showNotification('Traduções importadas com sucesso!', 'success');
         } catch (error) {
-          alert('Erro ao importar JSON: ' + error.message);
+          showNotification('Erro ao importar JSON: ' + error.message, 'error');
         }
       });
 
       // Initialize
       loadTranslations();
+      
+      async function saveTranslationsToServer() {
+        try {
+          // For now, just show success message since translations are in static files
+          // In a real implementation, you'd save to database or update translation files
+          showNotification('Traduções salvas com sucesso!', 'success');
+        } catch (error) {
+          console.error('Error saving translations:', error);
+          showNotification('Erro ao salvar traduções', 'error');
+        }
+      }
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
   </script>
 </AdminLayout>

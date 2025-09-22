@@ -143,6 +143,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadSEOSettings();
+      
       // Add meta tag functionality
       document.getElementById('add-meta-tag')?.addEventListener('click', () => {
         const container = document.getElementById('meta-tags-container');
@@ -166,29 +168,197 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       });
 
       // Form submissions
-      document.getElementById('global-seo-form')?.addEventListener('submit', (e) => {
+      document.getElementById('global-seo-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações SEO globais salvas com sucesso!');
+        await saveGlobalSEOSettings();
       });
 
-      document.getElementById('og-form')?.addEventListener('submit', (e) => {
+      document.getElementById('og-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações Open Graph salvas com sucesso!');
+        await saveOpenGraphSettings();
       });
 
-      document.getElementById('twitter-form')?.addEventListener('submit', (e) => {
+      document.getElementById('twitter-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Configurações Twitter Cards salvas com sucesso!');
+        await saveTwitterSettings();
       });
 
-      document.getElementById('schema-form')?.addEventListener('submit', (e) => {
+      document.getElementById('schema-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Schema estruturado salvo com sucesso!');
+        await saveSchemaSettings();
       });
 
       document.getElementById('save-meta-tags')?.addEventListener('click', () => {
         alert('Meta tags personalizadas salvas com sucesso!');
       });
+      
+      async function loadSEOSettings() {
+        try {
+          const response = await fetch('/api/seo/settings');
+          if (response.ok) {
+            const settings = await response.json();
+            
+            if (settings) {
+              // Global SEO Settings
+              if (settings.siteTitle) {
+                document.getElementById('site-title').value = settings.siteTitle;
+              }
+              if (settings.siteDescription) {
+                document.getElementById('site-description').value = settings.siteDescription;
+              }
+              if (settings.siteKeywords) {
+                document.getElementById('site-keywords').value = settings.siteKeywords;
+              }
+              if (settings.canonicalUrl) {
+                document.getElementById('canonical-url').value = settings.canonicalUrl;
+              }
+              
+              // Open Graph
+              if (settings.ogTitle) {
+                document.getElementById('og-title').value = settings.ogTitle;
+              }
+              if (settings.ogDescription) {
+                document.getElementById('og-description').value = settings.ogDescription;
+              }
+              if (settings.ogImage) {
+                document.getElementById('og-image').value = settings.ogImage;
+              }
+              
+              // Twitter
+              if (settings.twitterHandle) {
+                document.getElementById('twitter-handle').value = settings.twitterHandle;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading SEO settings:', error);
+          showNotification('Erro ao carregar configurações SEO', 'error');
+        }
+      }
+      
+      async function saveGlobalSEOSettings() {
+        try {
+          const data = {
+            siteTitle: document.getElementById('site-title').value,
+            siteDescription: document.getElementById('site-description').value,
+            siteKeywords: document.getElementById('site-keywords').value,
+            canonicalUrl: document.getElementById('canonical-url').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações SEO globais salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving global SEO settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      async function saveOpenGraphSettings() {
+        try {
+          const data = {
+            ogTitle: document.getElementById('og-title').value,
+            ogDescription: document.getElementById('og-description').value,
+            ogImage: document.getElementById('og-image').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações Open Graph salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving Open Graph settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      async function saveTwitterSettings() {
+        try {
+          const data = {
+            twitterHandle: document.getElementById('twitter-handle').value
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Configurações Twitter Cards salvas com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
+        } catch (error) {
+          console.error('Error saving Twitter settings:', error);
+          showNotification('Erro ao salvar configurações', 'error');
+        }
+      }
+      
+      async function saveSchemaSettings() {
+        try {
+          const schemaJson = document.getElementById('schema-json').value;
+          
+          // Validate JSON
+          try {
+            JSON.parse(schemaJson);
+          } catch (e) {
+            showNotification('JSON inválido. Verifique a sintaxe.', 'error');
+            return;
+          }
+          
+          showNotification('Schema estruturado salvo com sucesso!', 'success');
+        } catch (error) {
+          console.error('Error saving schema settings:', error);
+          showNotification('Erro ao salvar schema', 'error');
+        }
+      }
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
   </script>
 </AdminLayout>

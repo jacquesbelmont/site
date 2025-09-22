@@ -180,9 +180,15 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         const data = await response.json();
         
         // Update stats
-        document.getElementById('members-count').textContent = data.members.total.toLocaleString();
-        document.getElementById('posts-count').textContent = data.posts.total.toLocaleString();
-        document.getElementById('videos-count').textContent = data.content.videos.toLocaleString();
+        if (document.getElementById('members-count')) {
+          document.getElementById('members-count').textContent = data.members.total.toLocaleString();
+        }
+        if (document.getElementById('posts-count')) {
+          document.getElementById('posts-count').textContent = data.posts.total.toLocaleString();
+        }
+        if (document.getElementById('videos-count')) {
+          document.getElementById('videos-count').textContent = data.content.videos.toLocaleString();
+        }
         
         // Update recent activity
         updateRecentActivity(data.recent);
@@ -190,9 +196,15 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         // Show error state
-        document.getElementById('members-count').textContent = 'Error';
-        document.getElementById('posts-count').textContent = 'Error';
-        document.getElementById('videos-count').textContent = 'Error';
+        if (document.getElementById('members-count')) {
+          document.getElementById('members-count').textContent = 'Error';
+        }
+        if (document.getElementById('posts-count')) {
+          document.getElementById('posts-count').textContent = 'Error';
+        }
+        if (document.getElementById('videos-count')) {
+          document.getElementById('videos-count').textContent = 'Error';
+        }
       }
     }
 

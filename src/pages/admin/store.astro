@@ -392,7 +392,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           const response = await fetch(`/api/admin/products?id=${productId}`);
           if (response.ok) {
             const data = await response.json();
-            const product = data.products.find(p => p.id === productId);
+            const product = data.products ? data.products.find(p => p.id === productId) : data;
             
             if (product) {
               document.getElementById('product-name').value = product.name || '';
@@ -408,11 +408,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               editingProductId = productId;
               document.querySelector('#new-product-modal h3').textContent = 'Editar Produto';
               newProductModal?.classList.remove('hidden');
+            } else {
+              throw new Error('Product not found');
             }
           }
         } catch (error) {
           console.error('Error loading product:', error);
-          alert('Erro ao carregar produto para edição.');
+          showNotification('Erro ao carregar produto para edição.', 'error');
         }
       };
       
@@ -429,16 +431,38 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
           
           if (response.ok) {
-            alert('Produto excluído com sucesso!');
+            showNotification('Produto excluído com sucesso!', 'success');
             loadProducts();
           } else {
-            alert('Erro ao excluir produto.');
+            showNotification('Erro ao excluir produto.', 'error');
           }
         } catch (error) {
           console.error('Error deleting product:', error);
-          alert('Erro ao excluir produto.');
+          showNotification('Erro ao excluir produto.', 'error');
         }
       };
+      
+      function showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
+          type === 'success' ? 'bg-green-500 text-white' : 
+          type === 'error' ? 'bg-red-500 text-white' : 
+          'bg-blue-500 text-white'
+        }`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 5000);
+      }
     });
     
     async function loadProducts() {
