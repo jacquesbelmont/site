@@ -245,6 +245,17 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                   <option value="courses">Cursos</option>
                   <option value="consultation">Consultoria</option>
                   <option value="ebooks">E-books</option>
+                  <option value="software">Software</option>
+                  <option value="marketplace">Marketplace</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <select id="product-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                  <option value="digital">Digital</option>
+                  <option value="service">Serviço</option>
+                  <option value="physical">Físico</option>
                 </select>
               </div>
               
@@ -296,14 +307,20 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadProducts();
+      
       const newProductBtn = document.getElementById('new-product-btn');
       const newProductModal = document.getElementById('new-product-modal');
       const closeProductModal = document.getElementById('close-product-modal');
       const cancelProduct = document.getElementById('cancel-product');
       const newProductForm = document.getElementById('new-product-form');
+      let editingProductId = null;
 
       // Open modal
       newProductBtn?.addEventListener('click', () => {
+        editingProductId = null;
+        newProductForm.reset();
+        document.querySelector('#new-product-modal h3').textContent = 'Novo Produto';
         newProductModal?.classList.remove('hidden');
       });
 
@@ -311,22 +328,171 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       [closeProductModal, cancelProduct].forEach(btn => {
         btn?.addEventListener('click', () => {
           newProductModal?.classList.add('hidden');
+          editingProductId = null;
         });
       });
 
       // Form submission
-      newProductForm?.addEventListener('submit', (e) => {
+      newProductForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Produto salvo com sucesso!');
-        newProductModal?.classList.add('hidden');
+        
+        const formData = {
+          name: document.getElementById('product-name').value,
+          description: document.getElementById('product-description').value,
+          longDescription: document.getElementById('product-long-description').value,
+          price: document.getElementById('product-price').value,
+          image: document.getElementById('product-image').value,
+          category: document.getElementById('product-category').value,
+          type: document.getElementById('product-type')?.value || 'DIGITAL',
+          downloadUrl: document.getElementById('product-file').value,
+          featured: document.getElementById('product-featured').checked,
+          active: document.getElementById('product-status').value === 'active'
+        };
+        
+        if (editingProductId) {
+          formData.id = editingProductId;
+        }
+        
+        try {
+          const response = await fetch('/api/admin/products', {
+            method: editingProductId ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          if (response.ok) {
+            alert(editingProductId ? 'Produto atualizado com sucesso!' : 'Produto criado com sucesso!');
+            newProductModal?.classList.add('hidden');
+            loadProducts();
+            newProductForm.reset();
+            editingProductId = null;
+          } else {
+            const error = await response.json();
+            alert('Erro ao salvar produto: ' + (error.error || 'Erro desconhecido'));
+          }
+        } catch (error) {
+          console.error('Error saving product:', error);
+          alert('Erro ao salvar produto. Tente novamente.');
+        }
       });
 
       // Close modal on backdrop click
       newProductModal?.addEventListener('click', (e) => {
         if (e.target === newProductModal) {
           newProductModal.classList.add('hidden');
+          editingProductId = null;
         }
       });
+      
+      // Global functions for edit and delete
+      window.editProduct = async (productId) => {
+        try {
+          const response = await fetch(`/api/admin/products?id=${productId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const product = data.products.find(p => p.id === productId);
+            
+            if (product) {
+              document.getElementById('product-name').value = product.name || '';
+              document.getElementById('product-description').value = product.description || '';
+              document.getElementById('product-long-description').value = product.longDescription || '';
+              document.getElementById('product-price').value = product.price || '';
+              document.getElementById('product-image').value = product.image || '';
+              document.getElementById('product-category').value = product.category || '';
+              document.getElementById('product-file').value = product.downloadUrl || '';
+              document.getElementById('product-featured').checked = product.featured || false;
+              document.getElementById('product-status').value = product.active ? 'active' : 'inactive';
+              
+              editingProductId = productId;
+              document.querySelector('#new-product-modal h3').textContent = 'Editar Produto';
+              newProductModal?.classList.remove('hidden');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading product:', error);
+          alert('Erro ao carregar produto para edição.');
+        }
+      };
+      
+      window.deleteProduct = async (productId) => {
+        if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+        
+        try {
+          const response = await fetch('/api/admin/products', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: productId })
+          });
+          
+          if (response.ok) {
+            alert('Produto excluído com sucesso!');
+            loadProducts();
+          } else {
+            alert('Erro ao excluir produto.');
+          }
+        } catch (error) {
+          console.error('Error deleting product:', error);
+          alert('Erro ao excluir produto.');
+        }
+      };
     });
+    
+    async function loadProducts() {
+      try {
+        const response = await fetch('/api/admin/products');
+        if (response.ok) {
+          const data = await response.json();
+          updateProductsTable(data.products);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    }
+    
+    function updateProductsTable(products) {
+      const tbody = document.querySelector('tbody');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <img class="h-12 w-12 rounded-lg object-cover" src="${product.image || 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=100'}" alt="">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                <div class="text-sm text-gray-500">${product.description}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+              ${product.category}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${product.price}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">0</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+              ${product.active ? 'Ativo' : 'Inativo'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex space-x-2">
+              <button onclick="editProduct('${product.id}')" class="text-blue-600 hover:text-blue-900">Editar</button>
+              <button onclick="window.open('/store', '_blank')" class="text-green-600 hover:text-green-900">Ver</button>
+              <button onclick="deleteProduct('${product.id}')" class="text-red-600 hover:text-red-900">Excluir</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
   </script>
 </AdminLayout>

@@ -23,39 +23,30 @@ export const GET: APIRoute = async ({ url, cookies }) => {
     const searchParams = new URL(url).searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
     const search = searchParams.get('search');
 
     const skip = (page - 1) * limit;
     const where: any = {};
 
-    if (status === 'published') where.published = true;
-    if (status === 'draft') where.published = false;
-    
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
-        { excerpt: { contains: search, mode: 'insensitive' } }
+        { description: { contains: search, mode: 'insensitive' } }
       ];
     }
 
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
+    const [videos, total] = await Promise.all([
+      prisma.video.findMany({
         where,
-        include: {
-          author: { select: { name: true } },
-          category: true,
-          _count: { select: { comments: true } }
-        },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit
       }),
-      prisma.post.count({ where })
+      prisma.video.count({ where })
     ]);
 
     return new Response(JSON.stringify({
-      posts,
+      videos,
       pagination: {
         page,
         limit,
@@ -67,7 +58,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error fetching admin posts:', error);
+    console.error('Error fetching videos:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -96,52 +87,32 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const data = await request.json();
     const {
       title,
-      slug,
-      excerpt,
-      content,
-      image,
-      published = false,
-      featured = false,
-      categoryId,
-      seoTitle,
-      seoDescription,
-      seoKeywords,
-      readTime
+      description,
+      youtubeId,
+      thumbnail,
+      duration,
+      published = true,
+      featured = false
     } = data;
 
-    const finalSlug = slug || title.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
-    const post = await prisma.post.create({
+    const video = await prisma.video.create({
       data: {
         title,
-        slug: finalSlug,
-        excerpt,
-        content,
-        image,
+        description,
+        youtubeId,
+        thumbnail,
+        duration,
         published,
-        featured,
-        authorId: user.id,
-        categoryId,
-        seoTitle: seoTitle || title,
-        seoDescription: seoDescription || excerpt,
-        seoKeywords,
-        readTime,
-        publishedAt: published ? new Date() : null,
-      },
-      include: {
-        author: { select: { name: true } },
-        category: true
+        featured
       }
     });
 
-    return new Response(JSON.stringify(post), {
+    return new Response(JSON.stringify(video), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error creating post:', error);
+    console.error('Error creating video:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -170,25 +141,17 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     const data = await request.json();
     const { id, ...updateData } = data;
 
-    if (updateData.published && !updateData.publishedAt) {
-      updateData.publishedAt = new Date();
-    }
-
-    const post = await prisma.post.update({
+    const video = await prisma.video.update({
       where: { id },
-      data: updateData,
-      include: {
-        author: { select: { name: true } },
-        category: true
-      }
+      data: updateData
     });
 
-    return new Response(JSON.stringify(post), {
+    return new Response(JSON.stringify(video), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error updating post:', error);
+    console.error('Error updating video:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -216,7 +179,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     const { id } = await request.json();
 
-    await prisma.post.delete({
+    await prisma.video.delete({
       where: { id }
     });
 
@@ -225,7 +188,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error('Error deleting video:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

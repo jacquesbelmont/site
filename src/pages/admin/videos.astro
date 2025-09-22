@@ -230,14 +230,20 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadVideos();
+      
       const newVideoBtn = document.getElementById('new-video-btn');
       const newVideoModal = document.getElementById('new-video-modal');
       const closeVideoModal = document.getElementById('close-video-modal');
       const cancelVideo = document.getElementById('cancel-video');
       const newVideoForm = document.getElementById('new-video-form');
+      let editingVideoId = null;
 
       // Open modal
       newVideoBtn?.addEventListener('click', () => {
+        editingVideoId = null;
+        newVideoForm.reset();
+        document.querySelector('#new-video-modal h3').textContent = 'Novo Vídeo';
         newVideoModal?.classList.remove('hidden');
       });
 
@@ -245,22 +251,161 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       [closeVideoModal, cancelVideo].forEach(btn => {
         btn?.addEventListener('click', () => {
           newVideoModal?.classList.add('hidden');
+          editingVideoId = null;
         });
       });
 
       // Form submission
-      newVideoForm?.addEventListener('submit', (e) => {
+      newVideoForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Vídeo salvo com sucesso!');
-        newVideoModal?.classList.add('hidden');
+        
+        const formData = {
+          title: document.getElementById('video-title').value,
+          youtubeId: document.getElementById('youtube-id').value,
+          description: document.getElementById('video-description').value,
+          duration: document.getElementById('video-duration').value,
+          thumbnail: document.getElementById('video-thumbnail').value,
+          published: document.getElementById('video-published').checked,
+          featured: document.getElementById('video-featured').checked
+        };
+        
+        if (editingVideoId) {
+          formData.id = editingVideoId;
+        }
+        
+        try {
+          const response = await fetch('/api/admin/videos', {
+            method: editingVideoId ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          if (response.ok) {
+            alert(editingVideoId ? 'Vídeo atualizado com sucesso!' : 'Vídeo criado com sucesso!');
+            newVideoModal?.classList.add('hidden');
+            loadVideos();
+            newVideoForm.reset();
+            editingVideoId = null;
+          } else {
+            const error = await response.json();
+            alert('Erro ao salvar vídeo: ' + (error.error || 'Erro desconhecido'));
+          }
+        } catch (error) {
+          console.error('Error saving video:', error);
+          alert('Erro ao salvar vídeo. Tente novamente.');
+        }
       });
 
       // Close modal on backdrop click
       newVideoModal?.addEventListener('click', (e) => {
         if (e.target === newVideoModal) {
           newVideoModal.classList.add('hidden');
+          editingVideoId = null;
         }
       });
+      
+      // Global functions for edit and delete
+      window.editVideo = async (videoId) => {
+        try {
+          const response = await fetch(`/api/admin/videos?id=${videoId}`);
+          if (response.ok) {
+            const videos = await response.json();
+            const video = videos.videos.find(v => v.id === videoId);
+            
+            if (video) {
+              document.getElementById('video-title').value = video.title || '';
+              document.getElementById('youtube-id').value = video.youtubeId || '';
+              document.getElementById('video-description').value = video.description || '';
+              document.getElementById('video-duration').value = video.duration || '';
+              document.getElementById('video-thumbnail').value = video.thumbnail || '';
+              document.getElementById('video-published').checked = video.published || false;
+              document.getElementById('video-featured').checked = video.featured || false;
+              
+              editingVideoId = videoId;
+              document.querySelector('#new-video-modal h3').textContent = 'Editar Vídeo';
+              newVideoModal?.classList.remove('hidden');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading video:', error);
+          alert('Erro ao carregar vídeo para edição.');
+        }
+      };
+      
+      window.deleteVideo = async (videoId) => {
+        if (!confirm('Tem certeza que deseja excluir este vídeo?')) return;
+        
+        try {
+          const response = await fetch('/api/admin/videos', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: videoId })
+          });
+          
+          if (response.ok) {
+            alert('Vídeo excluído com sucesso!');
+            loadVideos();
+          } else {
+            alert('Erro ao excluir vídeo.');
+          }
+        } catch (error) {
+          console.error('Error deleting video:', error);
+          alert('Erro ao excluir vídeo.');
+        }
+      };
     });
+    
+    async function loadVideos() {
+      try {
+        const response = await fetch('/api/admin/videos');
+        if (response.ok) {
+          const data = await response.json();
+          updateVideosTable(data.videos);
+        }
+      } catch (error) {
+        console.error('Error loading videos:', error);
+      }
+    }
+    
+    function updateVideosTable(videos) {
+      const tbody = document.querySelector('tbody');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      videos.forEach(video => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <img class="h-16 w-24 rounded-lg object-cover" src="${video.thumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}" alt="">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${video.title}</div>
+                <div class="text-sm text-gray-500">${video.duration || 'N/A'} • YouTube</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${video.published ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+              ${video.published ? 'Publicado' : 'Não Publicado'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${video.views || 0}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex space-x-2">
+              <button onclick="editVideo('${video.id}')" class="text-blue-600 hover:text-blue-900">Editar</button>
+              <button onclick="window.open('https://youtube.com/watch?v=${video.youtubeId}', '_blank')" class="text-green-600 hover:text-green-900">Ver</button>
+              <button onclick="deleteVideo('${video.id}')" class="text-red-600 hover:text-red-900">Excluir</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
   </script>
 </AdminLayout>

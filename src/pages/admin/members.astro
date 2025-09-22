@@ -277,14 +277,20 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      loadMembers();
+      
       const newMemberBtn = document.getElementById('new-member-btn');
       const newMemberModal = document.getElementById('new-member-modal');
       const closeMemberModal = document.getElementById('close-member-modal');
       const cancelMember = document.getElementById('cancel-member');
       const newMemberForm = document.getElementById('new-member-form');
+      let editingMemberId = null;
 
       // Open modal
       newMemberBtn?.addEventListener('click', () => {
+        editingMemberId = null;
+        newMemberForm.reset();
+        document.querySelector('#new-member-modal h3').textContent = 'Novo Membro';
         newMemberModal?.classList.remove('hidden');
       });
 
@@ -292,22 +298,161 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       [closeMemberModal, cancelMember].forEach(btn => {
         btn?.addEventListener('click', () => {
           newMemberModal?.classList.add('hidden');
+          editingMemberId = null;
         });
       });
 
       // Form submission
-      newMemberForm?.addEventListener('submit', (e) => {
+      newMemberForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        alert('Membro salvo com sucesso!');
-        newMemberModal?.classList.add('hidden');
+        
+        const formData = {
+          name: document.getElementById('member-name').value,
+          email: document.getElementById('member-email').value,
+          plan: document.getElementById('member-plan').value,
+          status: document.getElementById('member-status').value,
+          expiresAt: document.getElementById('member-expires').value
+        };
+        
+        if (editingMemberId) {
+          formData.id = editingMemberId;
+        }
+        
+        try {
+          const response = await fetch('/api/admin/members', {
+            method: editingMemberId ? 'PUT' : 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          if (response.ok) {
+            alert(editingMemberId ? 'Membro atualizado com sucesso!' : 'Membro criado com sucesso!');
+            newMemberModal?.classList.add('hidden');
+            loadMembers();
+            newMemberForm.reset();
+            editingMemberId = null;
+          } else {
+            const error = await response.json();
+            alert('Erro ao salvar membro: ' + (error.error || 'Erro desconhecido'));
+          }
+        } catch (error) {
+          console.error('Error saving member:', error);
+          alert('Erro ao salvar membro. Tente novamente.');
+        }
       });
 
       // Close modal on backdrop click
       newMemberModal?.addEventListener('click', (e) => {
         if (e.target === newMemberModal) {
           newMemberModal.classList.add('hidden');
+          editingMemberId = null;
         }
       });
+      
+      // Global functions for edit and delete
+      window.editMember = async (memberId) => {
+        try {
+          const response = await fetch(`/api/admin/members?id=${memberId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const member = data.members.find(m => m.id === memberId);
+            
+            if (member) {
+              document.getElementById('member-name').value = member.name || '';
+              document.getElementById('member-email').value = member.email || '';
+              document.getElementById('member-plan').value = member.plan || '';
+              document.getElementById('member-status').value = member.status || '';
+              document.getElementById('member-expires').value = member.expiresAt ? new Date(member.expiresAt).toISOString().split('T')[0] : '';
+              
+              editingMemberId = memberId;
+              document.querySelector('#new-member-modal h3').textContent = 'Editar Membro';
+              newMemberModal?.classList.remove('hidden');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading member:', error);
+          alert('Erro ao carregar membro para edição.');
+        }
+      };
+      
+      window.deleteMember = async (memberId) => {
+        if (!confirm('Tem certeza que deseja excluir este membro?')) return;
+        
+        try {
+          const response = await fetch('/api/admin/members', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: memberId })
+          });
+          
+          if (response.ok) {
+            alert('Membro excluído com sucesso!');
+            loadMembers();
+          } else {
+            alert('Erro ao excluir membro.');
+          }
+        } catch (error) {
+          console.error('Error deleting member:', error);
+          alert('Erro ao excluir membro.');
+        }
+      };
     });
+    
+    async function loadMembers() {
+      try {
+        const response = await fetch('/api/admin/members');
+        if (response.ok) {
+          const data = await response.json();
+          updateMembersTable(data.members);
+        }
+      } catch (error) {
+        console.error('Error loading members:', error);
+      }
+    }
+    
+    function updateMembersTable(members) {
+      const tbody = document.querySelector('tbody');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      members.forEach(member => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <img class="h-10 w-10 rounded-full" src="https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=100" alt="">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${member.name}</div>
+                <div class="text-sm text-gray-500">${member.email}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${member.plan === 'PRO' ? 'bg-blue-100 text-blue-800' : member.plan === 'ENTERPRISE' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">
+              ${member.plan}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${member.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+              ${member.status === 'ACTIVE' ? 'Ativo' : member.status === 'INACTIVE' ? 'Inativo' : 'Cancelado'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(member.createdAt).toLocaleDateString('pt-BR')}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex space-x-2">
+              <button onclick="editMember('${member.id}')" class="text-blue-600 hover:text-blue-900">Editar</button>
+              <button onclick="window.open('/members', '_blank')" class="text-green-600 hover:text-green-900">Ver</button>
+              <button onclick="deleteMember('${member.id}')" class="text-red-600 hover:text-red-900">Excluir</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
   </script>
 </AdminLayout>

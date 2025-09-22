@@ -308,9 +308,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const newPostForm = document.getElementById('new-post-form');
       const postTitle = document.getElementById('post-title');
       const postSlug = document.getElementById('post-slug');
+      let editingPostId = null;
 
       // Open modal
       newPostBtn?.addEventListener('click', () => {
+        editingPostId = null;
+        newPostForm.reset();
+        document.querySelector('#new-post-modal h3').textContent = 'Novo Post';
         newPostModal?.classList.remove('hidden');
       });
 
@@ -318,6 +322,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       [closeModal, cancelPost].forEach(btn => {
         btn?.addEventListener('click', () => {
           newPostModal?.classList.add('hidden');
+          editingPostId = null;
         });
       });
 
@@ -348,9 +353,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           seoKeywords: document.getElementById('post-seo-keywords').value
         };
         
+        if (editingPostId) {
+          formData.id = editingPostId;
+        }
+        
         try {
-          const response = await fetch('/api/blog/posts', {
-            method: 'POST',
+          const response = await fetch('/api/admin/posts', {
+            method: editingPostId ? 'PUT' : 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -358,10 +367,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
           
           if (response.ok) {
-            alert('Post salvo com sucesso!');
+            alert(editingPostId ? 'Post atualizado com sucesso!' : 'Post criado com sucesso!');
             newPostModal?.classList.add('hidden');
             loadBlogPosts(); // Reload the posts list
             newPostForm.reset();
+            editingPostId = null;
           } else {
             const error = await response.json();
             alert('Erro ao salvar post: ' + (error.error || 'Erro desconhecido'));
@@ -376,13 +386,72 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       newPostModal?.addEventListener('click', (e) => {
         if (e.target === newPostModal) {
           newPostModal.classList.add('hidden');
+          editingPostId = null;
         }
       });
+      
+      // Global functions for edit and delete
+      window.editPost = async (postId) => {
+        try {
+          const response = await fetch(`/api/admin/posts?id=${postId}`);
+          if (response.ok) {
+            const post = await response.json();
+            
+            // Fill form with post data
+            document.getElementById('post-title').value = post.title || '';
+            document.getElementById('post-slug').value = post.slug || '';
+            document.getElementById('post-excerpt').value = post.excerpt || '';
+            document.getElementById('post-content').value = post.content || '';
+            document.getElementById('post-image').value = post.image || '';
+            document.getElementById('post-status').value = post.published ? 'published' : 'draft';
+            document.getElementById('post-category').value = post.categoryId || '';
+            document.getElementById('post-read-time').value = post.readTime || '';
+            document.getElementById('post-seo-title').value = post.seoTitle || '';
+            document.getElementById('post-seo-description').value = post.seoDescription || '';
+            document.getElementById('post-seo-keywords').value = post.seoKeywords || '';
+            
+            if (document.getElementById('post-featured')) {
+              document.getElementById('post-featured').checked = post.featured || false;
+            }
+            
+            editingPostId = postId;
+            document.querySelector('#new-post-modal h3').textContent = 'Editar Post';
+            newPostModal?.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Error loading post:', error);
+          alert('Erro ao carregar post para edição.');
+        }
+      };
+      
+      window.deletePost = async (postId) => {
+        if (!confirm('Tem certeza que deseja excluir este post?')) return;
+        
+        try {
+          const response = await fetch('/api/admin/posts', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: postId })
+          });
+          
+          if (response.ok) {
+            alert('Post excluído com sucesso!');
+            loadBlogPosts();
+          } else {
+            alert('Erro ao excluir post.');
+          }
+        } catch (error) {
+          console.error('Error deleting post:', error);
+          alert('Erro ao excluir post.');
+        }
+      };
     });
     
     async function loadCategories() {
       try {
-        const response = await fetch('/api/blog/categories');
+        const response = await fetch('/api/admin/categories');
         const categories = await response.json();
         
         const select = document.getElementById('post-category');
@@ -412,9 +481,40 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
     
     function updatePostsTable(posts) {
-      // This would update the posts table in the UI
-      // For now, we'll just log the posts
-      console.log('Posts loaded:', posts);
+      const tbody = document.querySelector('tbody');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      posts.forEach(post => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <img class="h-10 w-10 rounded-lg object-cover" src="${post.image || 'https://images.pexels.com/photos/270637/pexels-photo-270637.jpeg?auto=compress&cs=tinysrgb&w=100'}" alt="">
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${post.title}</div>
+                <div class="text-sm text-gray-500">${post.category?.name || 'Sem categoria'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${post.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+              ${post.published ? 'Publicado' : 'Rascunho'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(post.createdAt).toLocaleDateString('pt-BR')}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${post.views || 0}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex space-x-2">
+              <button onclick="editPost('${post.id}')" class="text-blue-600 hover:text-blue-900">Editar</button>
+              <button onclick="window.open('/blog/${post.slug}', '_blank')" class="text-green-600 hover:text-green-900">Ver</button>
+              <button onclick="deletePost('${post.id}')" class="text-red-600 hover:text-red-900">Excluir</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
     }
   </script>
 </AdminLayout>
