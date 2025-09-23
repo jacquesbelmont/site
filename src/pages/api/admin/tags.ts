@@ -26,7 +26,7 @@ export const GET: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const token = cookies.get('auth-token')?.value;
+    const token = cookies.get('admin-token')?.value;
     if (!token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,

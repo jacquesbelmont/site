@@ -4,7 +4,7 @@ import { verifyToken } from '../../../lib/auth';
 
 export const GET: APIRoute = async ({ url, cookies }) => {
   try {
-    const token = cookies.get('auth-token')?.value;
+    const token = cookies.get('admin-token')?.value;
     if (!token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -65,7 +65,7 @@ export const GET: APIRoute = async ({ url, cookies }) => {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const token = cookies.get('auth-token')?.value;
+    const token = cookies.get('admin-token')?.value;
     if (!token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
