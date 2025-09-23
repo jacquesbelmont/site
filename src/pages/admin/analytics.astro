@@ -215,6 +215,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       
       async function loadAnalyticsSettings() {
         try {
+          showLoading(true);
           const response = await fetch('/api/seo/settings');
           if (response.ok) {
             const settings = await response.json();
@@ -256,11 +257,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error loading analytics settings:', error);
           showNotification('Erro ao carregar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveAnalyticsSettings(type) {
         try {
+          showLoading(true);
           let data = {};
           
           switch (type) {
@@ -307,6 +311,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving analytics settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
+        }
+      }
+      
+      function showLoading(show) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          if (show) {
+            loading.classList.remove('hidden');
+          } else {
+            loading.classList.add('hidden');
+          }
         }
       }
       

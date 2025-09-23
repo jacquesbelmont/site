@@ -194,6 +194,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       
       async function loadSEOSettings() {
         try {
+          showLoading(true);
           const response = await fetch('/api/seo/settings');
           if (response.ok) {
             const settings = await response.json();
@@ -228,16 +229,34 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               if (settings.twitterHandle) {
                 document.getElementById('twitter-handle').value = settings.twitterHandle;
               }
+              
+              // Load schema JSON
+              if (settings.schemaJson) {
+                document.getElementById('schema-json').value = JSON.stringify(JSON.parse(settings.schemaJson), null, 2);
+              } else {
+                // Default schema
+                const defaultSchema = {
+                  "@context": "https://schema.org",
+                  "@type": "Person",
+                  "name": "Jacques Belmont",
+                  "jobTitle": "Digital Marketing Expert & AI Specialist",
+                  "url": "https://jacquesbelmont.com"
+                };
+                document.getElementById('schema-json').value = JSON.stringify(defaultSchema, null, 2);
+              }
             }
           }
         } catch (error) {
           console.error('Error loading SEO settings:', error);
           showNotification('Erro ao carregar configurações SEO', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveGlobalSEOSettings() {
         try {
+          showLoading(true);
           const data = {
             siteTitle: document.getElementById('site-title').value,
             siteDescription: document.getElementById('site-description').value,
@@ -262,11 +281,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving global SEO settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveOpenGraphSettings() {
         try {
+          showLoading(true);
           const data = {
             ogTitle: document.getElementById('og-title').value,
             ogDescription: document.getElementById('og-description').value,
@@ -290,11 +312,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving Open Graph settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveTwitterSettings() {
         try {
+          showLoading(true);
           const data = {
             twitterHandle: document.getElementById('twitter-handle').value
           };
@@ -316,11 +341,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving Twitter settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveSchemaSettings() {
         try {
+          showLoading(true);
           const schemaJson = document.getElementById('schema-json').value;
           
           // Validate JSON
@@ -331,10 +359,40 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             return;
           }
           
-          showNotification('Schema estruturado salvo com sucesso!', 'success');
+          const data = {
+            schemaJson: schemaJson
+          };
+          
+          const response = await fetch('/api/seo/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+          
+          if (response.ok) {
+            showNotification('Schema estruturado salvo com sucesso!', 'success');
+          } else {
+            const error = await response.json();
+            showNotification('Erro ao salvar: ' + (error.error || 'Erro desconhecido'), 'error');
+          }
         } catch (error) {
           console.error('Error saving schema settings:', error);
           showNotification('Erro ao salvar schema', 'error');
+        } finally {
+          showLoading(false);
+        }
+      }
+      
+      function showLoading(show) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          if (show) {
+            loading.classList.remove('hidden');
+          } else {
+            loading.classList.add('hidden');
+          }
         }
       }
       
