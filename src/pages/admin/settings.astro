@@ -217,6 +217,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       
       async function loadGeneralSettings() {
         try {
+          showLoading(true);
           const response = await fetch('/api/seo/settings');
           if (response.ok) {
             const settings = await response.json();
@@ -271,11 +272,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error loading general settings:', error);
           showNotification('Erro ao carregar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveSiteSettings() {
         try {
+          showLoading(true);
           const data = {
             siteName: document.getElementById('site-name').value,
             siteUrl: document.getElementById('site-url').value,
@@ -301,11 +305,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving site settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveSocialSettings() {
         try {
+          showLoading(true);
           const data = {
             linkedinUrl: document.getElementById('linkedin-url').value,
             youtubeUrl: document.getElementById('youtube-url').value,
@@ -330,11 +337,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving social settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
         }
       }
       
       async function saveEmailSettings() {
         try {
+          showLoading(true);
           const data = {
             smtpHost: document.getElementById('smtp-host').value,
             smtpPort: parseInt(document.getElementById('smtp-port').value) || null,
@@ -359,6 +369,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         } catch (error) {
           console.error('Error saving email settings:', error);
           showNotification('Erro ao salvar configurações', 'error');
+        } finally {
+          showLoading(false);
+        }
+      }
+      
+      function showLoading(show) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          if (show) {
+            loading.classList.remove('hidden');
+          } else {
+            loading.classList.add('hidden');
+          }
         }
       }
       

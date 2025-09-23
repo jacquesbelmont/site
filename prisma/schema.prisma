@@ -209,6 +209,7 @@ model SeoSettings {
   googleTagManager String?
   hotjarId        String?
   clarityId       String?
+  schemaJson      String?
   
   // Site Settings
   siteName        String?
