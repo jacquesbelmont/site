@@ -1,40 +1,30 @@
+// src/lib/database.ts
+
 import { PrismaClient } from '@prisma/client';
+import { withAccelerate } from '@prisma/extension-accelerate'; // 1. Adicione esta linha
 
 declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-export const prisma = globalThis.__prisma || new PrismaClient({
-  log: ['query', 'error', 'warn'],
-});
+// 2. Modifique esta linha para adicionar .$extends(withAccelerate())
+export const prisma = globalThis.__prisma || new PrismaClient().$extends(withAccelerate());
 
 if (process.env.NODE_ENV !== 'production') {
   globalThis.__prisma = prisma;
 }
 
-// Database connection helper
-export async function connectDatabase() {
-  try {
-    await prisma.$connect();
-    console.log('Database connected successfully');
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    throw error;
-  }
-}
+// O restante das funções (connectDatabase, etc.) pode ser removido,
+// pois o Accelerate gerencia a conexão para você.
+// Mas se quiser mantê-las, não há problema.
 
-// Disconnect database
-export async function disconnectDatabase() {
-  await prisma.$disconnect();
-}
-
-// Health check
 export async function checkDatabaseHealth() {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    // Usar uma query simples que funciona com Accelerate
+    await prisma.user.findFirst({ select: { id: true } });
     return { status: 'healthy', timestamp: new Date() };
   } catch (error) {
     console.error('Database health check failed:', error);
-    return { status: 'unhealthy', error: error.message, timestamp: new Date() };
+    return { status: 'unhealthy', error: (error as Error).message, timestamp: new Date() };
   }
 }
