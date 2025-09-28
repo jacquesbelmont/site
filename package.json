@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "prisma db push && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:generate": "prisma generate",
