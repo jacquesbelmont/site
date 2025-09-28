@@ -1,5 +1,6 @@
 ---
 import AdminNavigation from '../components/admin/AdminNavigation.astro';
+import Toast from '../components/admin/Toast.astro';
 
 export interface Props {
   title: string;
@@ -88,6 +89,9 @@ const { title } = Astro.props;
         <slot />
       </main>
     </div>
+    
+    <!-- Toast Notifications -->
+    <Toast />
 
     <script>
       // Import admin config functions
